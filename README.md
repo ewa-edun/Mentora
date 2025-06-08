@@ -86,3 +86,48 @@ The following features are functional in our MVP:
 ---
 
 ## 🚀 How to Run Locally
+
+---
+
+## 🛡️ Responsible AI
+
+We’ve taken steps to ensure:
+
+- Age-appropriate story and quiz generation
+- Voice data is not stored after analysis
+- Bias mitigation via prompt tuning and fairness filters
+
+---
+
+## 💭 What's Next?
+
+📈 Personalized learning paths based on long-term performance
+
+🧑‍🏫 Teacher and classroom integration
+
+🧒 Fully gamified storytelling assistant for kids
+
+📱 Publish as a mobile app using React Native
+
+---
+
+## 👥 Team
+
+Ewa – Full Stack Dev (React, Flask, Firebase, AI Integration)
+
+Gurmeet – Backend Dev
+
+Naghul– Frontend Dev
+
+Sandesh– UI/UX + Storytelling Mode + Design
+
+---
+
+## ✨ Devpost Submission
+
+> 🔗 LINK TO DEVPOST PROJECT PAGE
+(Replace this with your actual Devpost link)
+
+---
+
+🧠 Built With Passion @ Bolt.new Hackathon 🚀
