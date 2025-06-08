@@ -1,7 +1,7 @@
 # 🎙️ Mentora – The Emotion-Aware, Voice-First AI Study & Wellness Assistant
 
 > Built for the Bolt.new Hackathon  
-> Team Members: Ewa, Naghul, Person 3, Person 4  
+> Team Members: Ewa, Naghul, Gurmeet, Sandesh
 > Tech Stack: React, Flask, Firebase, Gemini, Whisper, ElevenLabs, Emotion Recognition API
 
 ---
