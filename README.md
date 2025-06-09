@@ -115,6 +115,48 @@ Mentora is submitted to the **Bolt.new Hackathon** and qualifies for the followi
 - ⭐ Top Build-in-Public Journey
 
 ---
+### Make Mentora More Valuable Competitive
+1. Leverage RevenueCat for Monetization & Make More Money Challenge
+  - Integrate RevenueCat mobile SDK + Paywall Builder directly into Mentora.
+  - Offer tiered subscription plans:
+  - Free tier: Basic tutoring + limited wellness breaks.
+  - Premium tier: Full voice cloning, personalized coaching, unlimited quizzes, and teacher-parent companion mode.
+  - Use RevenueCat analytics to track subscriber behavior and optimize your paywall experience.
+
+2. Use Entri for a Custom Domain
+  - Deploy your Bolt app and claim a custom domain (e.g., mentora.study or mentora.app) via Entri.
+  - Custom domains increase professionalism and user trust, important for education/wellness apps.
+
+3. Add Voice AI with ElevenLabs
+  - Enhance Mentora’s voice interactivity by fully implementing ElevenLabs’ voice cloning and TTS capabilities.
+  - Allow users to choose or clone a voice for personalized tutoring or bedtime stories.
+  - Make the AI tutor feel more human-like, increasing engagement.
+
+4. Add Conversational AI Video with Tavus
+  - Integrate Tavus AI-generated video agents to:
+  - Give personalized study tips via video
+  - Record motivational messages or wellness check-ins
+  - This can be a unique feature that merges video + voice AI, setting you apart.
+
+5. Deploy via Netlify and Join the Deploy Challenge
+  - Host your React frontend on Netlify with continuous deployment.
+  - Use Netlify’s built-in analytics to monitor traffic and optimize UX.
+  - Combine this with Bolt’s backend and deploy your full stack app seamlessly.
+
+6. Explore Blockchain for Future-Proof Features (Algorand Challenge),
+  - Use Algorand’s blockchain to:
+  - Issue verifiable certificates for course completion.
+  - Store immutable user progress or mood data privately and securely.
+
+ RevenueCat: For managing subscriptions and payments smoothly.
+ ElevenLabs: For natural, expressive voice interaction.
+ Tavus: For AI video agents enhancing user connection.
+ Algorand/IPFS: For secure, decentralized data or payments.
+ Pica & Dappier: Use Pica to rapidly prototype UI and Dappier to add AI copilot features like semantic search or smart help inside your app.
+ River: Build a community platform for Mentora users to share tips and host study groups/events.
+ Sentry: Monitor errors and optimize performance during and after the hackathon.
+
+---
 
 ## 🛡️ Responsible AI
 
@@ -132,6 +174,12 @@ We’ve taken steps to ensure:
 🧑‍🏫 Teacher and classroom integration
 🧒 Fully gamified storytelling assistant for kids
 📱 Publish as a mobile app using React Native
+🔥 Mentora+ : 
+      - More voice types
+      - Custom memory folder names
+      - Emo-aware journaling
+      - Soundscapes / focus music integration
+      - Add a button that says “Upgrade to Mentora+” that opens a dummy modal using RevenueCat.
 
 ---
 
