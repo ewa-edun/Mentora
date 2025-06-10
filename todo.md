@@ -1,3 +1,8 @@
+## Installs:
+npm install firebase
+npm install axios form-data
+npm install dotenv
+
 ## 🔄 Overall Timeline
 | Week       | Focus                                                                                        |
 | ---------- | -------------------------------------------------------------------------------------------- |
@@ -6,11 +11,6 @@
 | **Week 3** | Polish emotional UX, Mentora+ polish, storytelling, final demo, deploy & submit              |
 
 ---
-
-## 🗓️ Week-by-Week Breakdown
-
-### ✅ **Week 1: Foundation Setup (Days 1–7)**
-
 
 ## 🗓️ Week-by-Week Breakdown
 
@@ -136,3 +136,13 @@
 | Devpost Description & Deployment | Ewa              | ⬜      |
 | Screenshots + Visuals            | Sandesh          | ⬜      |
 | Submission Testing 🔁           | Naghul           | ⬜      |
+
+
+Start building your app on or after May 30 for it to be considered NEW. Your app can be built completely with Bolt.new or significantly started or built on Bolt.new. Just be sure the publicly deployed version includes a badge that highlights that it is built with Bolt.new ([see guidance here](https://worldslargesthackathon.devpost.com/details/badgeguidelines)).
+
+What to Submit
+Include a video (about 3 minutes) that demonstrates your submission. Videos must be uploaded to YouTube, Vimeo, or Facebook Video and made public.
+Provide a URL to a publicly available version of the project that is fully functional as described for review and judging. 
+Confirm usage of Bolt.new to build the project and show the ‘Built with Bolt.new’ badge on your public project.
+Provide the email used to build the project on Bolt.new. This email must be associated with the usage of Bolt.new to built the submitted project.
+
