@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: linear-gradient(135deg, #f8f7ff 0%, #e4deff 100%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/20 backdrop-blur-md border border-white/30 shadow-xl;
+  }
+  
+  .neomorphism {
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    box-shadow: 20px 20px 60px #d9d9d9, -20px -20px 60px #ffffff;
+  }
+  
+  .neomorphism-inset {
+    background: linear-gradient(145deg, #f0f0f0, #ffffff);
+    box-shadow: inset 20px 20px 60px #d9d9d9, inset -20px -20px 60px #ffffff;
+  }
+  
+  .glow-lavender {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+  
+  .text-gradient {
+    @apply bg-gradient-to-r from-lavender-600 to-indigo-600 bg-clip-text text-transparent;
+  }
+}

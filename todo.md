@@ -1,4 +1,5 @@
 ## Installs:
+npm install
 npm install firebase
 npm install axios form-data
 npm install dotenv
