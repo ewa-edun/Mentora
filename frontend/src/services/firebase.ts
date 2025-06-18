@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, FirebaseApp } from "firebase/app";
 import { getAnalytics, Analytics } from "firebase/analytics";
-import {  getAuth,  Auth, signInWithEmailAndPassword,  createUserWithEmailAndPassword,  sendPasswordResetEmail, signOut, onAuthStateChanged, User, UserCredential, updateProfile, sendEmailVerification, GoogleAuthProvider, signInWithPopup, FacebookAuthProvider, TwitterAuthProvider } from 'firebase/auth';
+import {  getAuth,  Auth, signInWithEmailAndPassword,  createUserWithEmailAndPassword,  sendPasswordResetEmail, signOut, onAuthStateChanged, User, UserCredential, updateProfile, sendEmailVerification, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import {  getFirestore,  Firestore, doc,  setDoc,  getDoc,  updateDoc,  collection,  addDoc,  query,  where,  orderBy,  getDocs, deleteDoc, serverTimestamp, DocumentData, QuerySnapshot } from 'firebase/firestore';
  // import {getStorage, Storage,ref, uploadBytes, getDownloadURL, deleteObject,uploadBytesResumable,UploadTask} from 'firebase/storage';
 
@@ -27,8 +27,7 @@ export const analytics: Analytics = getAnalytics(app);
 
 // Auth providers
 export const googleProvider = new GoogleAuthProvider();
-export const facebookProvider = new FacebookAuthProvider();
-export const twitterProvider = new TwitterAuthProvider();
+
 
 // Types
 export interface AuthResult {
@@ -132,26 +131,6 @@ export const loginUser = async (email: string, password: string): Promise<AuthRe
 export const signInWithGoogle = async (): Promise<AuthResult> => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    
-    // Create or update user profile
-    await createUserProfile(result.user);
-    
-    return { success: true, user: result.user };
-  } catch (error: unknown) {
-    let errorMessage = 'An unknown error occurred';
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    return { success: false, error: errorMessage };
-  }
-};
-
-/**
- * Sign in with Facebook
- */
-export const signInWithFacebook = async (): Promise<AuthResult> => {
-  try {
-    const result = await signInWithPopup(auth, facebookProvider);
     
     // Create or update user profile
     await createUserProfile(result.user);

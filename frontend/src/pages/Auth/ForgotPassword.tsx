@@ -105,7 +105,7 @@ const ForgotPassword: React.FC = () => {
           <div className="text-center mb-8 animate-fadeIn">
             <div className="relative mb-6">
               <div className="w-20 h-20 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-2xl flex items-center justify-center mx-auto glow-primary animate-float">
-                <Brain className="w-10 h-10 text-white" />
+                <Brain className="w-10 h-10 group-hover:-translate-x-1 transition-transform" />
               </div>
               <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
                 <Sparkles className="w-4 h-4 text-white" />
@@ -153,11 +153,11 @@ const ForgotPassword: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading || !email}
-                className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium py-3 px-6 rounded-xl hover:from-primary-600 hover:to-primary-700 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg group relative overflow-hidden"
+                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 font-medium py-3 px-6 rounded-xl hover:bg-white/30 hover:border-white/50 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg group relative overflow-hidden"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <div className="w-5 h-5 border-2 border-neutral-400/30 border-t-neutral-600 rounded-full animate-spin"></div>
                     <span>Sending...</span>
                   </div>
                 ) : (
@@ -184,7 +184,7 @@ const ForgotPassword: React.FC = () => {
             <div className="mt-8 p-4 bg-primary-100/60 backdrop-blur-sm rounded-xl border border-primary-200/50">
               <h4 className="text-sm font-medium text-primary-700 mb-2">Need more help?</h4>
               <p className="text-xs text-primary-600 leading-relaxed">
-                If you're still having trouble accessing your account, our AI support team is here to help. 
+                If you're still having trouble accessing your account, our support team is here to help. 
                 Contact us and we'll get you back to learning in no time!
               </p>
             </div>

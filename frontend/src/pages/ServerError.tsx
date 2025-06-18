@@ -28,9 +28,9 @@ const ServerError: React.FC = () => {
       </div>
 
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
-        <div className="max-w-2xl mx-auto text-center">
+        <div className="max-w-2xl mt-8 mx-auto text-center">
           {/* Main error content */}
-          <div className="glass-card-strong rounded-3xl p-12 mb-8 animate-fadeIn">
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 mb-8 shadow-2xl animate-fadeIn">
             {/* Animated error icon */}
             <div className="relative mb-8">
               <div className="w-24 h-24 bg-gradient-to-r from-rose-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto glow-error animate-float">
@@ -43,7 +43,7 @@ const ServerError: React.FC = () => {
 
             {/* Error code */}
             <div className="mb-6">
-              <h1 className="text-8xl font-serif font-bold text-gradient-warm mb-2">502</h1>
+              <h1 className="text-8xl font-serif font-bold bg-gradient-to-r from-rose-500 to-orange-500 bg-clip-text text-transparent mb-2">502</h1>
               <div className="w-24 h-1 bg-gradient-to-r from-rose-500 to-orange-500 mx-auto rounded-full"></div>
             </div>
 
@@ -60,10 +60,10 @@ const ServerError: React.FC = () => {
               <button 
                 onClick={handleRefresh}
                 disabled={isRetrying}
-                className="btn-primary group relative overflow-hidden"
+                className="bg-gradient-to-r from-rose-500 to-orange-500 text-white font-medium py-3 px-6 rounded-xl hover:from-rose-600 hover:to-orange-600 transform hover:scale-105 focus:ring-4 focus:ring-rose-200 focus:outline-none transition-all duration-300 shadow-lg flex items-center justify-center gap-2 group relative overflow-hidden"
               >
-                <RefreshCw className={`w-5 h-5 transition-transform ${isRetrying ? 'animate-spin' : 'group-hover:rotate-180'}`} />
-                {isRetrying ? 'Reconnecting...' : 'Try Again'}
+                <RefreshCw className={`w-5 h-5 transition-transform text-white ${isRetrying ? 'animate-spin' : 'group-hover:rotate-180'}`} />
+                <span className="text-white">{isRetrying ? 'Reconnecting...' : 'Try Again'}</span>
                 {isRetrying && (
                   <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
                 )}
@@ -71,16 +71,16 @@ const ServerError: React.FC = () => {
               
               <Link 
                 to="/" 
-                className="btn-secondary group"
+                className="bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 font-medium py-3 px-6 rounded-xl hover:bg-white/30 hover:border-white/50 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg flex items-center justify-center gap-2 group"
               >
                 <Home className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                Back to Home
+                <span>Back to Home</span>
               </Link>
             </div>
 
             {/* Retry counter */}
             {retryCount > 0 && (
-              <div className="flex items-center justify-center gap-2 text-sm text-orange-600 bg-orange-50 rounded-full px-4 py-2 mx-auto w-fit">
+              <div className="flex items-center justify-center gap-2 text-sm text-orange-600 bg-orange-100/60 backdrop-blur-sm rounded-full px-4 py-2 mx-auto w-fit border border-orange-200/50">
                 <Clock className="w-4 h-4" />
                 <span>Retry attempt #{retryCount}</span>
               </div>
@@ -88,7 +88,7 @@ const ServerError: React.FC = () => {
           </div>
 
           {/* Status information */}
-          <div className="glass-card rounded-2xl p-8 animate-slideInRight" style={{ animationDelay: '0.2s' }}>
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 mb-5 shadow-xl animate-slideInRight" style={{ animationDelay: '0.2s' }}>
             <div className="flex items-center justify-center gap-3 mb-6">
               <AlertTriangle className="w-6 h-6 text-orange-500" />
               <h3 className="text-xl font-serif font-semibold text-neutral-800">What's happening?</h3>
@@ -132,7 +132,7 @@ const ServerError: React.FC = () => {
               </div>
             </div>
             
-            <div className="mt-8 p-6 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-200">
+            <div className="mt-8 p-6 bg-gradient-to-r from-orange-50/80 to-amber-50/80 backdrop-blur-sm rounded-xl border border-orange-200/50">
               <div className="flex items-center gap-3 mb-3">
                 <Shield className="w-5 h-5 text-orange-600" />
                 <span className="font-semibold text-orange-800">Need immediate help?</span>

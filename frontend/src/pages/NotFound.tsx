@@ -14,13 +14,13 @@ const NotFound: React.FC = () => {
       </div>
 
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
-        <div className="max-w-2xl mx-auto text-center">
+        <div className="max-w-2xl mt-8 mx-auto text-center">
           {/* Main error content */}
-          <div className="glass-card-strong rounded-3xl p-12 mb-8 animate-fadeIn">
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 mb-8 shadow-2xl animate-fadeIn">
             {/* Floating icon */}
             <div className="relative mb-8">
               <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-2xl flex items-center justify-center mx-auto glow-primary animate-float">
-                <Brain className="w-12 h-12 text-white" />
+                <Brain className="w-12 h-12 group-hover:-translate-x-1 transition-transform" />
               </div>
               <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
                 <Sparkles className="w-4 h-4 text-white" />
@@ -29,7 +29,7 @@ const NotFound: React.FC = () => {
 
             {/* Error code with gradient */}
             <div className="mb-6">
-              <h1 className="text-8xl font-serif font-bold text-gradient mb-2">404</h1>
+             <h1 className="text-8xl font-serif font-bold text-gradient mb-2">404</h1>
               <div className="w-24 h-1 bg-gradient-to-r from-primary-500 to-secondary-500 mx-auto rounded-full"></div>
             </div>
 
@@ -45,30 +45,30 @@ const NotFound: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link 
                 to="/" 
-                className="btn-primary group"
+                className="bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 font-medium py-3 px-6 rounded-xl hover:bg-white/30 hover:border-white/50 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg flex items-center justify-center gap-2 group"
               >
-                <Home className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                Back to Home
+                <Home className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                <span>Back to Home</span>
               </Link>
               
               <button 
                 onClick={() => window.history.back()}
-                className="btn-secondary group"
+                className="bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 font-medium py-3 px-6 rounded-xl hover:bg-white/30 hover:border-white/50 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg flex items-center justify-center gap-2 group"
               >
                 <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                Go Back
+                <span>Go Back</span>
               </button>
             </div>
 
             {/* Voice hint */}
-            <div className="flex items-center justify-center gap-2 text-sm text-primary-600 bg-primary-50 rounded-full px-4 py-2 mx-auto w-fit">
+            <div className="flex items-center justify-center gap-2 text-sm text-primary-600 bg-primary-100/60 backdrop-blur-sm rounded-full px-4 py-2 mx-auto w-fit border border-primary-200/50">
               <Mic className="w-4 h-4" />
               <span>Try saying "Take me home" to your voice assistant</span>
             </div>
           </div>
 
           {/* Quick navigation */}
-          <div className="glass-card rounded-2xl p-8 animate-slideInLeft" style={{ animationDelay: '0.2s' }}>
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 mb-5 shadow-xl animate-slideInLeft" style={{ animationDelay: '0.2s' }}>
             <div className="flex items-center justify-center gap-3 mb-6">
               <Search className="w-6 h-6 text-primary-600" />
               <h3 className="text-xl font-serif font-semibold text-neutral-800">Looking for something specific?</h3>
@@ -76,7 +76,7 @@ const NotFound: React.FC = () => {
             
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Link 
-                to="/study" 
+                to="/dashboard" 
                 className="group p-4 rounded-xl bg-white/50 hover:bg-white/80 border border-white/60 hover:border-primary-200 transition-all duration-300 hover:scale-105"
               >
                 <div className="text-2xl mb-2">📚</div>
@@ -84,7 +84,7 @@ const NotFound: React.FC = () => {
               </Link>
               
               <Link 
-                to="/break" 
+                to="/dashboard" 
                 className="group p-4 rounded-xl bg-white/50 hover:bg-white/80 border border-white/60 hover:border-primary-200 transition-all duration-300 hover:scale-105"
               >
                 <div className="text-2xl mb-2">🧘</div>
@@ -92,7 +92,7 @@ const NotFound: React.FC = () => {
               </Link>
               
               <Link 
-                to="/voice" 
+                to="/dashboard" 
                 className="group p-4 rounded-xl bg-white/50 hover:bg-white/80 border border-white/60 hover:border-primary-200 transition-all duration-300 hover:scale-105"
               >
                 <div className="text-2xl mb-2">🎙️</div>
@@ -100,7 +100,7 @@ const NotFound: React.FC = () => {
               </Link>
               
               <Link 
-                to="/storytelling" 
+                to="/dashboard" 
                 className="group p-4 rounded-xl bg-white/50 hover:bg-white/80 border border-white/60 hover:border-primary-200 transition-all duration-300 hover:scale-105"
               >
                 <div className="text-2xl mb-2">📖</div>
