@@ -2,12 +2,10 @@
 npm install
 npm install firebase
 npm install react-router-dom
-
 npm install -D tailwindcss postcss autoprefixer
-
 npx tailwindcss init
-
 npm install axios form-data
+pip install google-generativeai
 npm install dotenv
 
 ## 🔄 Overall Timeline
