@@ -88,7 +88,7 @@ const SignIn: React.FC = () => {
           </div>
 
           {/* Sign Up Form */}
-          <div className="glass-card-strong rounded-3xl p-8 animate-slideInRight">
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl animate-slideInRight">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name Field */}
               <div className="space-y-2">
@@ -105,7 +105,7 @@ const SignIn: React.FC = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="input pl-10"
+                    className="w-full px-4 py-3 pl-10 rounded-xl border-0 bg-white/20 backdrop-blur-sm placeholder-neutral-500 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300"
                     placeholder="Enter your full name"
                     required
                   />
@@ -127,7 +127,7 @@ const SignIn: React.FC = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="input pl-10"
+                    className="w-full px-4 py-3 pl-10 rounded-xl border-0 bg-white/20 backdrop-blur-sm placeholder-neutral-500 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300"
                     placeholder="your.email@example.com"
                     required
                   />
@@ -149,7 +149,7 @@ const SignIn: React.FC = () => {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="input pl-10 pr-10"
+                    className="w-full px-4 py-3 pl-10 pr-10 rounded-xl border-0 bg-white/20 backdrop-blur-sm placeholder-neutral-500 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300"
                     placeholder="Create a strong password"
                     required
                   />
@@ -159,9 +159,9 @@ const SignIn: React.FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-neutral-400 hover:text-neutral-600" />
+                      <EyeOff className="h-5 w-5 text-neutral-400 hover:text-neutral-600 transition-colors" />
                     ) : (
-                      <Eye className="h-5 w-5 text-neutral-400 hover:text-neutral-600" />
+                      <Eye className="h-5 w-5 text-neutral-400 hover:text-neutral-600 transition-colors" />
                     )}
                   </button>
                 </div>
@@ -182,7 +182,7 @@ const SignIn: React.FC = () => {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className="input pl-10 pr-10"
+                    className="w-full px-4 py-3 pl-10 pr-10 rounded-xl border-0 bg-white/20 backdrop-blur-sm placeholder-neutral-500 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300"
                     placeholder="Confirm your password"
                     required
                   />
@@ -192,9 +192,9 @@ const SignIn: React.FC = () => {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5 text-neutral-400 hover:text-neutral-600" />
+                      <EyeOff className="h-5 w-5 text-neutral-400 hover:text-neutral-600 transition-colors" />
                     ) : (
-                      <Eye className="h-5 w-5 text-neutral-400 hover:text-neutral-600" />
+                      <Eye className="h-5 w-5 text-neutral-400 hover:text-neutral-600 transition-colors" />
                     )}
                   </button>
                 </div>
@@ -208,7 +208,7 @@ const SignIn: React.FC = () => {
                   className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
                     acceptTerms 
                       ? 'bg-primary-500 border-primary-500' 
-                      : 'border-neutral-300 hover:border-primary-400'
+                      : 'border-neutral-300 hover:border-primary-400 bg-white/20 backdrop-blur-sm'
                   }`}
                 >
                   {acceptTerms && <Check className="w-3 h-3 text-white" />}
@@ -227,8 +227,8 @@ const SignIn: React.FC = () => {
 
               {/* Error Message */}
               {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-                  <p className="text-sm text-red-600">{error}</p>
+                <div className="p-4 bg-red-100/80 backdrop-blur-sm border border-red-200/50 rounded-xl">
+                  <p className="text-sm text-red-700">{error}</p>
                 </div>
               )}
 
@@ -236,7 +236,7 @@ const SignIn: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full btn-primary group relative overflow-hidden"
+                className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium py-3 px-6 rounded-xl hover:from-primary-600 hover:to-primary-700 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg group relative overflow-hidden"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
@@ -253,7 +253,7 @@ const SignIn: React.FC = () => {
             </form>
 
             {/* Voice Features Preview */}
-            <div className="mt-6 p-4 bg-primary-50 rounded-xl border border-primary-200">
+            <div className="mt-6 p-4 bg-primary-100/60 backdrop-blur-sm rounded-xl border border-primary-200/50">
               <div className="flex items-center gap-3 mb-2">
                 <Mic className="w-5 h-5 text-primary-600" />
                 <span className="text-sm font-medium text-primary-700">Voice-First Learning Awaits!</span>
@@ -271,7 +271,7 @@ const SignIn: React.FC = () => {
                   to="/login" 
                   className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
                 >
-                  Login
+                  Sign in
                 </Link>
               </p>
             </div>

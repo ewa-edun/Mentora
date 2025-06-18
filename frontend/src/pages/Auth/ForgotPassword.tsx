@@ -43,7 +43,7 @@ const ForgotPassword: React.FC = () => {
 
         <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
           <div className="w-full max-w-md text-center">
-            <div className="glass-card-strong rounded-3xl p-8 animate-fadeIn">
+            <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl animate-fadeIn">
               {/* Success Icon */}
               <div className="relative mb-8">
                 <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto glow-success animate-float">
@@ -61,7 +61,7 @@ const ForgotPassword: React.FC = () => {
               </p>
 
               <div className="space-y-4">
-                <Link to="/login" className="btn-primary w-full">
+                <Link to="/login" className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium py-3 px-6 rounded-xl hover:from-primary-600 hover:to-primary-700 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg flex items-center justify-center gap-2">
                   <ArrowLeft className="w-5 h-5" />
                   Back to Login
                 </Link>
@@ -71,13 +71,13 @@ const ForgotPassword: React.FC = () => {
                     setIsEmailSent(false);
                     setEmail('');
                   }}
-                  className="btn-secondary w-full"
+                  className="w-full bg-white/20 backdrop-blur-sm text-primary-600 font-medium py-3 px-6 rounded-xl border border-primary-200/50 hover:bg-white/30 hover:border-primary-300 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300"
                 >
                   Try Different Email
                 </button>
               </div>
 
-              <div className="mt-8 p-4 bg-green-50 rounded-xl border border-green-200">
+              <div className="mt-8 p-4 bg-green-100/60 backdrop-blur-sm rounded-xl border border-green-200/50">
                 <p className="text-sm text-green-700">
                   <strong>Didn't receive the email?</strong> Check your spam folder or try again in a few minutes.
                 </p>
@@ -116,7 +116,7 @@ const ForgotPassword: React.FC = () => {
           </div>
 
           {/* Reset Form */}
-          <div className="glass-card-strong rounded-3xl p-8 animate-slideInLeft">
+          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl animate-slideInLeft">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
               <div className="space-y-2">
@@ -132,7 +132,7 @@ const ForgotPassword: React.FC = () => {
                     id="email"
                     value={email}
                     onChange={handleEmailChange}
-                    className="input pl-10"
+                    className="w-full px-4 py-3 pl-10 rounded-xl border-0 bg-white/20 backdrop-blur-sm placeholder-neutral-500 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300"
                     placeholder="Enter your email address"
                     required
                   />
@@ -144,8 +144,8 @@ const ForgotPassword: React.FC = () => {
 
               {/* Error Message */}
               {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-                  <p className="text-sm text-red-600">{error}</p>
+                <div className="p-4 bg-red-100/80 backdrop-blur-sm border border-red-200/50 rounded-xl">
+                  <p className="text-sm text-red-700">{error}</p>
                 </div>
               )}
 
@@ -153,7 +153,7 @@ const ForgotPassword: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading || !email}
-                className="w-full btn-primary group relative overflow-hidden"
+                className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium py-3 px-6 rounded-xl hover:from-primary-600 hover:to-primary-700 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg group relative overflow-hidden"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
@@ -181,7 +181,7 @@ const ForgotPassword: React.FC = () => {
             </div>
 
             {/* Help Section */}
-            <div className="mt-8 p-4 bg-primary-50 rounded-xl border border-primary-200">
+            <div className="mt-8 p-4 bg-primary-100/60 backdrop-blur-sm rounded-xl border border-primary-200/50">
               <h4 className="text-sm font-medium text-primary-700 mb-2">Need more help?</h4>
               <p className="text-xs text-primary-600 leading-relaxed">
                 If you're still having trouble accessing your account, our AI support team is here to help. 
