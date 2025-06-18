@@ -1,32 +1,37 @@
-import React, { useState } from 'react';
-import Navbar from './components/Navbar';
-import StudyMode from './components/StudyMode';
-import BreakMode from './components/BreakMode';
-import VoicePanel from './components/VoicePanel';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Home from '../src/pages/Home';
+import NotFound from '../src/pages/NotFound';
+import ServerError from '../src/pages/ServerError';
+import Login from '../src/pages/Auth/Login';
+import SignIn from '../src/pages/Auth/SignIn';
+import ForgotPassword from '../src/pages/Auth/ForgotPassword';
 
 function App() {
-  const [currentMode, setCurrentMode] = useState<'study' | 'break'>('study');
-
-  const toggleMode = () => {
-    setCurrentMode(currentMode === 'study' ? 'break' : 'study');
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-lavender-50 via-white to-indigo-50">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%239d75ff%22 fill-opacity=%220.03%22%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%222%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
+    <Routes>
+      {/* Main Routes */}
+      <Route path="/" element={<Home />} />
+      <Route path="/home" element={<Home />} />
+
+      {/* Authentication Routes */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signin" element={<SignIn />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       
-      <div className="relative z-10">
-        <Navbar currentMode={currentMode} onToggleMode={toggleMode} />
-        
-        <main className="container mx-auto px-4 py-8 max-w-6xl">
-          <div className="animate-float">
-            {currentMode === 'study' ? <StudyMode /> : <BreakMode />}
-          </div>
-        </main>
-        
-        <VoicePanel />
-      </div>
-    </div>
+      {/* Feature Routes (for future implementation) */}
+      <Route path="/study" element={<Home />} />
+      <Route path="/break" element={<Home />} />
+      <Route path="/voice" element={<Home />} />
+      <Route path="/storytelling" element={<Home />} />
+      
+      {/* Error Routes */}
+      <Route path="/error/502" element={<ServerError />} />
+      <Route path="/server-error" element={<ServerError />} />
+      
+      {/* 404 - Must be last */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 

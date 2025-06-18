@@ -12,7 +12,10 @@
 
 @layer components {
   .glass-card {
-    @apply bg-white/20 backdrop-blur-md border border-white/30 shadow-xl;
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
   }
   
   .neomorphism {
@@ -30,6 +33,10 @@
   }
   
   .text-gradient {
-    @apply bg-gradient-to-r from-lavender-600 to-indigo-600 bg-clip-text text-transparent;
+    background-image: linear-gradient(to right, #7c3aed, #4f46e5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
   }
 }
