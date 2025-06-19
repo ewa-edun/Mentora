@@ -5,6 +5,8 @@ import Landing from '../src/pages/Landing';
 import Home from '../src/pages/Home';
 import NotFound from '../src/pages/NotFound';
 import ServerError from '../src/pages/ServerError';
+import PrivacyPolicy from '../src/pages/PrivacyPolicy';
+import TermsOfService from '../src/pages/TOS';
 import Login from '../src/pages/Auth/Login';
 import SignIn from '../src/pages/Auth/SignIn';
 import ForgotPassword from '../src/pages/Auth/ForgotPassword';
@@ -18,6 +20,10 @@ function App() {
       {/* Main Routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/home" element={<Home />} />
+
+      {/* Legal Routes */}
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
 
       {/* Authentication Routes */}
       <Route path="/login" element={<Login />} />
