@@ -223,19 +223,19 @@ const SignIn: React.FC = () => {
                   onClick={() => setAcceptTerms(!acceptTerms)}
                   className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
                     acceptTerms 
-                      ? 'bg-primary-500 border-primary-500' 
+                      ? 'bg-gradient-to-r from-amber-400 to-orange-500 border-primary-600' 
                       : 'border-neutral-400 hover:border-primary-400 bg-white/20 backdrop-blur-sm'
                   }`}
                 >
                   {acceptTerms && <Check className="w-3 h-3 text-white" />}
                 </button>
-                <label className="text-sm text-neutral-600 leading-relaxed">
+                <label className="text-sm text-neutral-800 leading-relaxed">
                   I agree to the{' '}
-                  <Link to="/terms" className="text-primary-600 hover:text-primary-700 transition-colors">
+                  <Link to="/terms" className="text-blue-900 hover:text-blue-700 transition-colors">
                     Terms of Service
                   </Link>{' '}
                   and{' '}
-                  <Link to="/privacy" className="text-primary-600 hover:text-primary-700 transition-colors">
+                  <Link to="/privacy" className="text-blue-900 hover:text-blue-700 transition-colors">
                     Privacy Policy
                   </Link>
                 </label>
@@ -252,7 +252,7 @@ const SignIn: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 font-medium py-3 px-6 rounded-xl hover:bg-white/30 hover:border-white/50 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg group relative overflow-hidden"
+                className="w-full bg-gradient-to-r from-red-400 to-pink-400 backdrop-blur-sm border hover:text-primary-600 font-medium border-white/30  text-white text-neutral-700 border-white/30 font-medium py-3 px-6 rounded-xl hover:bg-white/30 hover:border-white/50 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg group relative overflow-hidden"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
@@ -304,7 +304,7 @@ const SignIn: React.FC = () => {
             </form>
 
             {/* Voice Features Preview */}
-            <div className="mt-6 p-4 bg-primary-100/60 backdrop-blur-sm rounded-xl border border-primary-200/50">
+            <div className="mt-6 p-4  bg-gradient-to-r from-cyan-100 to-blue-100 backdrop-blur-sm rounded-xl border border-primary-200/50">
               <div className="flex items-center gap-3 mb-2">
                 <Mic className="w-5 h-5 text-primary-600" />
                 <span className="text-sm font-medium text-primary-700">Voice-First Learning Awaits!</span>

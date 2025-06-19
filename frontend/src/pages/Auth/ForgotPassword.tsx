@@ -153,7 +153,7 @@ const ForgotPassword: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading || !email}
-                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 font-medium py-3 px-6 rounded-xl hover:bg-white/30 hover:border-white/50 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg group relative overflow-hidden"
+                className="w-full bg-gradient-to-r from-red-400 to-pink-400 backdrop-blur-sm hover:text-primary-600 font-medium text-white border border-white/30 text-neutral-700 font-medium py-3 px-6 rounded-xl hover:bg-white/30 hover:border-white/50 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg group relative overflow-hidden"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
@@ -181,7 +181,7 @@ const ForgotPassword: React.FC = () => {
             </div>
 
             {/* Help Section */}
-            <div className="mt-8 p-4 bg-primary-100/60 backdrop-blur-sm rounded-xl border border-primary-200/50">
+            <div className="mt-8 p-4  bg-gradient-to-r from-cyan-100 to-blue-100 backdrop-blur-sm rounded-xl border border-primary-200/50">
               <h4 className="text-sm font-medium text-primary-700 mb-2">Need more help?</h4>
               <p className="text-xs text-primary-600 leading-relaxed">
                 If you're still having trouble accessing your account, our support team is here to help. 

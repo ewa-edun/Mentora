@@ -69,10 +69,13 @@ const Landing: React.FC = () => {
       <nav className="relative z-50 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center">
-              <Brain className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+            <div className="relative">
+              <div className="w-10 h-10 bg-gradient-to-br from-lavender-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <Sparkles className="w-5 h-5 text-white" />
+               </div>
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-pink-400 to-rose-400 rounded-full animate-pulse-soft"></div>
             </div>
-            <span className="text-2xl font-serif font-bold bg-clip-text text-transparent">
+            <span className="text-2xl font-serif font-bold text-gradient">
               Mentora
             </span>
           </div>
@@ -80,13 +83,13 @@ const Landing: React.FC = () => {
           <div className="flex items-center gap-4">
             <Link 
               to="/login" 
-              className="text-neutral-600 hover:text-primary-600 font-medium transition-colors"
+              className="bg-white/20 text-neutral-600 hover:text-primary-600 font-medium transition-colors px-6 py-2 rounded-xl transform hover:bg-white/30 hover:border-white/50 hover:scale-105 transition-all duration-300 shadow-lg backdrop-blur-sm border border-white/30 flex items-center justify-center gap-3 group"
             >
               Login
             </Link>
             <Link 
               to="/signin" 
-              className=" text-neutral-600 hover:text-primary-600 font-medium transition-colors px-6 py-2 rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg"
+              className=" text-neutral-600 hover:text-primary-600 font-medium  bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full flex items-center justify-center animate-pulse-slow transition-colors px-6 py-2 rounded-xl transform hover:scale-105 transition-all duration-300 shadow-lg"
             >
               Get Started
             </Link>
@@ -103,8 +106,8 @@ const Landing: React.FC = () => {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto text-center">
-          <div className="relative mb-8">
-            <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-2xl flex items-center justify-center mx-auto glow-primary animate-float mb-6">
+          <div className="relative mb-4">
+            <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-2xl flex items-center justify-center mx-auto glow-primary animate-float mb-5">
               <Brain className="w-12 h-12 group-hover:-translate-x-1 transition-transform" />
             </div>
             <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
@@ -112,7 +115,7 @@ const Landing: React.FC = () => {
             </div>
           </div>
 
-          <h1 className="text-6xl md:text-7xl font-serif font-bold bg-clip-text text-transparent mb-6 leading-tight text-gradient ">
+          <h1 className="text-6xl md:text-7xl font-serif font-bold bg-clip-text text-transparent mb-6 leading-tight text-gradient">
             Learn Smarter,
             <br />
             Not Harder
@@ -126,7 +129,7 @@ const Landing: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link 
               to="/signin" 
-              className=" bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/30 hover:border-white/50 transform hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center gap-3 group"
+              className=" bg-gradient-to-r from-red-500 to-pink-500 text-white backdrop-blur-sm border border-white/30 text-neutral-700 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/30 hover:border-white/50 transform hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center gap-3 group"
             >
               <span>Start Learning Free</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -159,7 +162,7 @@ const Landing: React.FC = () => {
       <section className="px-6 py-20 bg-white/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-serif font-bold  bg-clip-text text-transparent mb-4">
+            <h2 className="text-4xl bg-gradient-to-r from-purple-500 to-orange-500 font-serif font-bold bg-clip-text text-transparent mb-4">
               Why Students Love Mentora
             </h2>
             <p className="text-xl text-neutral-600 max-w-3xl mx-auto">
@@ -188,7 +191,7 @@ const Landing: React.FC = () => {
       <section className="px-6 py-20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-serif font-bold  bg-clip-text text-transparent mb-4">
+            <h2 className="text-4xl font-serif font-bold bg-clip-text mb-4">
               How Mentora Works
             </h2>
             <p className="text-xl text-neutral-600 max-w-3xl mx-auto">
@@ -228,7 +231,7 @@ const Landing: React.FC = () => {
       <section className="px-6 py-20 bg-white/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-serif font-bold  bg-clip-text text-transparent mb-4">
+            <h2 className="text-4xl bg-gradient-to-r from-purple-500 to-orange-500 font-serif font-bold bg-clip-text text-transparent mb-4">
               Loved by Students Worldwide
             </h2>
             <p className="text-xl text-neutral-600">
@@ -262,7 +265,7 @@ const Landing: React.FC = () => {
       <section className="px-6 py-20">
         <div className="max-w-4xl mx-auto text-center">
           <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12">
-            <h2 className="text-4xl font-serif font-bold  bg-clip-text text-transparent mb-6">
+            <h2 className="text-4xl font-serif font-semibold bg-clip-text mb-6">
               Ready to Transform Your Learning?
             </h2>
             <p className="text-xl text-neutral-600 mb-8 max-w-2xl mx-auto">
@@ -272,7 +275,7 @@ const Landing: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 to="/signin" 
-                className=" bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/30 hover:border-white/50 transform hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center gap-3 group"
+                className=" bg-gradient-to-r from-red-500 to-pink-500 text-white backdrop-blur-sm border border-white/30 text-neutral-700 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/30 hover:border-white/50 transform hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center gap-3 group"
               >
                 <span>Start Free Today</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

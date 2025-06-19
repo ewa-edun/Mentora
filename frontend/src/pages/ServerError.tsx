@@ -9,11 +9,10 @@ const ServerError: React.FC = () => {
   const handleRefresh = () => {
     setIsRetrying(true);
     setRetryCount(prev => prev + 1);
-    
     // Simulate retry attempt
     setTimeout(() => {
       setIsRetrying(false);
-      window.location.reload();
+      window.history.back();
     }, 2000);
   };
 

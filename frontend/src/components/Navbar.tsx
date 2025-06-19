@@ -29,19 +29,19 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
                 onClick={onToggleMode}
                 className={`relative flex items-center space-x-2 px-6 py-3 rounded-full font-medium transition-all duration-300 transform hover:scale-105 ${
                   currentMode === 'study'
-                    ? 'bg-gradient-to-r from-lavender-500 to-indigo-600 text-white shadow-lg glow-lavender'
-                    : 'bg-gradient-to-r from-emerald-400 to-teal-500 text-white shadow-lg'
+                    ? 'bg-gradient-to-r from-emerald-400 to-teal-500 text-white shadow-lg'
+                    : 'bg-gradient-to-r from-lavender-500 to-indigo-600 text-white shadow-lg glow-lavender'
                 }`}
               >
                 {currentMode === 'study' ? (
                   <>
-                    <BookOpen className="w-4 h-4" />
-                    <span>Study</span>
+                    <Coffee className="w-4 h-4" />
+                    <span>Break</span>
                   </>
                 ) : (
                   <>
-                    <Coffee className="w-4 h-4" />
-                    <span>Break</span>
+                    <BookOpen className="w-4 h-4" />
+                    <span>Study</span>
                   </>
                 )}
                 

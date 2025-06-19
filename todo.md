@@ -19,47 +19,6 @@ npm install dotenv
 
 ## 🗓️ Week-by-Week Breakdown
 
-### ✅ **Week 1: Foundation Setup (Days 1–7)**
-
-**Ewa (Full Stack + AI Integration)**
-
-* [x] Set up Firebase Auth + Firestore
-* [x] Set up Flask backend (routes for: summary, quiz, TTS, emotion)
-* [x] Integrate Whisper API for voice input → text
-* [x] Draft base prompt templates for Gemini (summary, quiz, Q\&A)
-* [x] Plan Mentora+ feature ideas + upsell mockup
-
-**Gurmeet (Backend Dev)**
-
-* [x] Build and test Flask endpoints:
-
-  * `/summarize`
-  * `/generate-quiz`
-  * `/ask`
-  * `/detect-emotion`
-  * `/tts`
-* [x] Connect Gemini + Whisper
-* [x] Modular structure for agents
-* [x] Add CORS & secure API key handling
-
-**Naghul (Frontend Dev)**
-
-* [x] Scaffold React frontend with Tailwind CSS
-* [x] Build basic layout: Navigation, Home, Study Mode, Break Mode
-* [x] Mode toggle component (Study ↔ Break)
-* [x] UI for quiz and summary forms
-* [x] Implement form inputs for summary and quiz sections
-* [x] Create mode toggle component (Study ↔️ Break)
-
-**Sandesh (UI/UX + Design)**
-
-* [x] Figma mockups for Study/Break modes
-* [x] Initial mood color palette + theme
-* [x] Character sketch/storytelling visuals start
-* [x] Base voice avatar selector wireframe
-
----
-
 ### ✅ **Week 2: Emotional Logic + Interactivity (Days 8–14)**
 
 **Ewa**

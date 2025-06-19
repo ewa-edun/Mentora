@@ -85,7 +85,7 @@ const Login: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
+                <label htmlFor="email" className="block text-sm font-medium text-neutral-900">
                   Email Address
                 </label>
                 <div className="relative">
@@ -98,7 +98,7 @@ const Login: React.FC = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 pl-10 rounded-xl border-0 bg-white/20 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300"
+                    className="w-full px-4 py-3 pl-10 rounded-xl border-0 bg-white/40 backdrop-blur-sm placeholder-neutral-600 text-neutral-900 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300"
                     placeholder="your.email@example.com"
                     required
                   />
@@ -107,7 +107,7 @@ const Login: React.FC = () => {
 
               {/* Password Field */}
               <div className="space-y-2">
-                <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
+                <label htmlFor="password" className="block text-sm font-medium text-neutral-900">
                   Password
                 </label>
                 <div className="relative">
@@ -120,7 +120,7 @@ const Login: React.FC = () => {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 pl-10 pr-10 rounded-xl border-0 bg-white/20 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300"
+                    className="w-full px-4 py-3 pl-10 pr-10 rounded-xl border-0 bg-white/30 backdrop-blur-sm placeholder-neutral-600 text-neutral-900 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300"
                     placeholder="Enter your password"
                     required
                   />
@@ -149,7 +149,7 @@ const Login: React.FC = () => {
               <div className="text-right">
                 <Link 
                   to="/forgot-password" 
-                  className="text-sm text-primary-600 hover:text-primary-700 transition-colors font-medium"
+                  className="text-sm text-primary-400 hover:text-primary-700 transition-colors font-medium"
                 >
                   Forgot your password?
                 </Link>
@@ -159,7 +159,7 @@ const Login: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 font-medium py-3 px-6 rounded-xl hover:bg-white/30 hover:border-white/50 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg group relative overflow-hidden"
+                className="w-full bg-gradient-to-r from-red-400 to-pink-400 backdrop-blur-sm hover:text-primary-600 font-medium border-white/30 text-neutral-700 text-white font-medium py-3 px-6 rounded-xl hover:bg-white/30 hover:border-white/50 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg group relative overflow-hidden"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
@@ -211,9 +211,9 @@ const Login: React.FC = () => {
             </form>
 
             {/* Voice Login Hint */}
-            <div className="mt-6 p-4 bg-primary-100/60 backdrop-blur-sm rounded-xl border border-primary-200/50">
+            <div className="mt-6 p-4 bg-gradient-to-r from-cyan-100 to-blue-100 backdrop-blur-sm rounded-xl border border-primary-200/50">
               <div className="flex items-center gap-3 mb-2">
-                <Mic className="w-5 h-5 text-primary-600" />
+                <Mic className="w-5 h-5 text-primary-600 " />
                 <span className="text-sm font-medium text-primary-700">Voice Login Coming Soon!</span>
               </div>
               <p className="text-xs text-primary-600">
