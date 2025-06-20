@@ -1,4 +1,4 @@
-# Sandesh’s Storytelling & Illustration Approach
+# Storytelling & Illustration Approach
 
 ## Why Storytelling?
 Mentora isn’t just a tool—it’s an adventure. Every interaction is shaped to feel like a supportive journey, not a task.
