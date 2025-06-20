@@ -20,7 +20,7 @@ const Footer: React.FC = () => {
       links: [
         { name: "Features", href: "/#features", icon: <Zap className="w-4 h-4" /> },
         { name: "About Us", href: "/#about", icon: <Users className="w-4 h-4" /> },
-        { name: "Voice AI", href: "/#voice", icon: <Mic className="w-4 h-4" /> }
+        { name: "Voice AI", href: "/voice", icon: <Mic className="w-4 h-4" /> }
       ]
     },
     {

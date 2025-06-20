@@ -59,7 +59,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-white/20">
+    <nav className="sticky top-0 z-50  glass-card border-b border-white/20">
       <div className="max-w-7xl mx-auto px-6 py-4 container">
         <div className="flex items-center justify-between">
           {/* Logo */}

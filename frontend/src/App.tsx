@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import ScrollToTop from '../src/components/ScrollToTop';
 import Landing from '../src/pages/Landing';
 import Home from '../src/pages/Home';
+import VoicePage from '../src/pages/VoicePage';
 import NotFound from '../src/pages/NotFound';
 import ServerError from '../src/pages/ServerError';
 import PrivacyPolicy from '../src/pages/PrivacyPolicy';
@@ -26,7 +27,9 @@ function App() {
       <Route path="/profile" element={<Profile />} />
 
       {/* Additional Routes */}
-
+      <Route path="/voice" element={<VoicePage />} />
+      
+      {/* Study Routes */}
       {/* Legal Routes */}
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
