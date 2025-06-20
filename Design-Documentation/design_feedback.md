@@ -1,4 +1,4 @@
-# UI/UX Audit & Feedback by Sandesh
+# UI/UX Audit & Feedback 
 
 ## Overall Experience
 Mentora’s interface is inviting and low-stress. The use of glassmorphism and playful color choices make it approachable for kids and teens.
