@@ -16,6 +16,7 @@ const SignIn: React.FC = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [showTermsError, setShowTermsError] = useState(false);
   const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,6 +28,12 @@ const SignIn: React.FC = () => {
     if (error) setError('');
   };
 
+  const handleTermsChange = () => {
+    setAcceptTerms(!acceptTerms);
+    if (showTermsError) setShowTermsError(false);
+    if (error && error.includes('terms')) setError('');
+  };
+ 
   const validateForm = () => {
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
@@ -37,7 +44,8 @@ const SignIn: React.FC = () => {
       return false;
     }
     if (!acceptTerms) {
-      setError('Please accept the terms and conditions');
+      setShowTermsError(true);
+      setError('Please accept the Privacy Policy and Terms of Service');
       return false;
     }
     return true;
@@ -54,7 +62,7 @@ const SignIn: React.FC = () => {
     const result = await registerUser(formData.email, formData.password, formData.name);
     
     if (result.success) {
-      navigate('/');
+      navigate('/home');
     } else {
       setError(result.error || 'Registration failed');
     }
@@ -69,7 +77,7 @@ const SignIn: React.FC = () => {
     const result = await signInWithGoogle();
     
     if (result.success) {
-      navigate('/');
+      navigate('/home');
     } else {
       setError(result.error || 'Google sign-in failed');
     }
@@ -221,6 +229,7 @@ const SignIn: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setAcceptTerms(!acceptTerms)}
+                  onChange={handleTermsChange}
                   className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
                     acceptTerms 
                       ? 'bg-gradient-to-r from-amber-400 to-orange-500 border-primary-600' 
@@ -251,6 +260,7 @@ const SignIn: React.FC = () => {
               {/* Submit Button */}
               <button
                 type="submit"
+                onClick={handleSubmit}
                 disabled={isLoading}
                 className="w-full bg-gradient-to-r from-red-400 to-pink-400 backdrop-blur-sm border hover:text-primary-600 font-medium border-white/30  text-white text-neutral-700 border-white/30 font-medium py-3 px-6 rounded-xl hover:bg-white/30 hover:border-white/50 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg group relative overflow-hidden"
               >
@@ -320,7 +330,7 @@ const SignIn: React.FC = () => {
                 Already have an account?{' '}
                 <Link 
                   to="/login" 
-                  className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                  className="text-blue-900 hover:text-blue-700 font-medium transition-colors"
                 >
                   Sign in
                 </Link>

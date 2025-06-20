@@ -10,6 +10,9 @@ import TermsOfService from '../src/pages/TOS';
 import Login from '../src/pages/Auth/Login';
 import SignIn from '../src/pages/Auth/SignIn';
 import ForgotPassword from '../src/pages/Auth/ForgotPassword';
+import Profile from '../src/pages/Profile';
+
+// Importing Footer component for consistent layout
 import Footer from '../src/components/Footer';
 
 function App() {
@@ -20,6 +23,9 @@ function App() {
       {/* Main Routes */}
       <Route path="/" element={<Landing />} />
       <Route path="/home" element={<Home />} />
+      <Route path="/profile" element={<Profile />} />
+
+      {/* Additional Routes */}
 
       {/* Legal Routes */}
       <Route path="/privacy" element={<PrivacyPolicy />} />

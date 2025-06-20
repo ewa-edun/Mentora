@@ -31,7 +31,7 @@ const Login: React.FC = () => {
     const result = await loginUser(formData.email, formData.password);
     
     if (result.success) {
-      navigate('/');
+      navigate('/home');
     } else {
       setError(result.error || 'Login failed');
     }
@@ -46,7 +46,7 @@ const Login: React.FC = () => {
     const result = await signInWithGoogle();
     
     if (result.success) {
-      navigate('/');
+      navigate('/home');
     } else {
       setError(result.error || 'Google sign-in failed');
     }
@@ -158,6 +158,7 @@ const Login: React.FC = () => {
               {/* Submit Button */}
               <button
                 type="submit"
+                onClick={handleSubmit}
                 disabled={isLoading}
                 className="w-full bg-gradient-to-r from-red-400 to-pink-400 backdrop-blur-sm hover:text-primary-600 font-medium border-white/30 text-neutral-700 text-white font-medium py-3 px-6 rounded-xl hover:bg-white/30 hover:border-white/50 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg group relative overflow-hidden"
               >
@@ -227,7 +228,7 @@ const Login: React.FC = () => {
                 New to Mentora?{' '}
                 <Link 
                   to="/signin" 
-                  className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                  className="text-blue-900 hover:text-blue-700 font-medium transition-colors"
                 >
                   Create an account
                 </Link>

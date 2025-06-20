@@ -194,32 +194,6 @@ We’ve taken steps to ensure:
 
 ---
 
-## 📆 Timeline
-
-### ✅ Week 1: Foundation & AI Integration
-- [x] Frontend layout with Chakra UI
-- [x] Flask backend with test endpoints
-- [x] ElevenLabs & Whisper integration
-- [x] Gemini integration for summaries and quiz generation
-- [x] Firebase Auth & Firestore setup
-
-### 🔄 Week 2: Features & Challenges
-- [ ] Voice-based flow: Question → Gemini → Spoken answer
-- [ ] Mood detection logic from voice input
-- [ ] Storytelling mode w/ Tavus avatar
-- [ ] Break & Study coaching content generation
-- [ ] RevenueCat setup for Mentora+ features
-- [ ] Publish with Entri domain
-
-### 🏁 Week 3: Final Polish & Submission
-- [ ] Full MVP testing
-- [ ] UI animations, polish, branding
-- [ ] Accessibility improvements
-- [ ] Submit to Devpost + Bolt.new
-- [ ] Launch on social media for build-in-public journey
-
----
-
 ## 📸 Screenshots / Demo
 
 _Add Figma previews, screenshots, or demo links here._
@@ -229,7 +203,7 @@ _Add Figma previews, screenshots, or demo links here._
 ## ✨ Devpost Submission
 
 > 🔗 LINK TO DEVPOST PROJECT PAGE
-https://devpost.com/software/942860?ref_content=user-portfolio&ref_feature=in_progress
+https://devpost.com/software/mentora-7kfy14
 
 ---
 

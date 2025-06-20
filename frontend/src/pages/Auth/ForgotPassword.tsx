@@ -61,7 +61,7 @@ const ForgotPassword: React.FC = () => {
               </p>
 
               <div className="space-y-4">
-                <Link to="/login" className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white font-medium py-3 px-6 rounded-xl hover:from-primary-600 hover:to-primary-700 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg flex items-center justify-center gap-2">
+                <Link to="/login" className="w-full bg-gradient-to-r from-red-400 to-pink-400 text-white font-medium py-3 px-6 rounded-xl hover:from-primary-600 hover:to-primary-700 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg flex items-center justify-center gap-2">
                   <ArrowLeft className="w-5 h-5" />
                   Back to Login
                 </Link>
