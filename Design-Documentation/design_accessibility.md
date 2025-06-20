@@ -1,6 +1,5 @@
 # Accessibility Commitment
 
-Designed by Sandesh
 
 - All colors meet or exceed WCAG AA contrast standards.
 - All interactive elements have clear focus states and large tap targets.
