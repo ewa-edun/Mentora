@@ -4,6 +4,7 @@ from routes.quiz import quiz_bp
 from routes.emotion import emotion_bp
 from routes.ask import ask_bp
 from routes.youtube import youtube_bp
+from routes.voice import voice_bp
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -15,6 +16,7 @@ app.register_blueprint(quiz_bp)
 app.register_blueprint(emotion_bp)
 app.register_blueprint(ask_bp)
 app.register_blueprint(youtube_bp)
+app.register_blueprint(voice_bp)
 
 @app.route('/')
 def welcome():
@@ -28,7 +30,9 @@ def welcome():
             '/api/generate-quiz',
             '/api/ask-question',
             '/api/summarize-youtube',
-            '/api/detect-emotion'
+            '/api/detect-emotion',
+            '/api/text-to-speech',
+            '/api/voices'
         ]
     })
 

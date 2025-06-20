@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Coffee, UserCircle, LogOut, Settings, ChevronDown, Sparkles, Menu, X } from 'lucide-react';
+import { BookOpen, Coffee, UserCircle, LogOut, Settings, ChevronDown, Sparkles, Menu, X, Crown } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '../services/firebase';
+import PremiumModal from './PremiumModal';
 
 interface NavbarProps {
   currentMode: 'study' | 'break';
@@ -16,6 +17,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
   }
   const [user, setUser] = useState<User | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -59,7 +61,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
   };
 
   return (
-    <nav className="sticky top-0 z-50  glass-card border-b border-white/20">
+    <nav className="sticky top-0 z-50 glass-card border-b border-white/20">
       <div className="max-w-7xl mx-auto px-6 py-4 container">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -100,6 +102,13 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
                 <div className="absolute inset-0 rounded-full bg-white/20 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
               </button>
             </div>
+            <button
+                onClick={() => setShowPremiumModal(true)}
+                className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+              >
+                <Crown className="w-4 h-4" />
+                <span>Upgrade</span>
+              </button>
           </div>
 
           {/* Desktop User Menu */}
@@ -205,7 +214,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
             </button>
           </div>
           {/* Centered menu */}
-          <div className="flex flex-col gap-4 items-center w-full max-w-xs bg-white/95 rounded-2xl shadow-2xl p-8 mt-16">
+          <div className="flex flex-col gap-4 items-center w-full max-w-md h-full bg-white/95 rounded-2xl shadow-2xl p-8 mt-16">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-gradient-to-br from-lavender-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
                 <Sparkles className="w-5 h-5 text-white" />
@@ -237,6 +246,16 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
                 </>
               )}
             </button>
+            <button
+                onClick={() => {
+                  setShowPremiumModal(true);
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300 w-full justify-center"
+              >
+                <Crown className="w-4 h-4" />
+                <span>Upgrade</span>
+              </button>
             <Link
               to="/profile"
               onClick={() => setMobileMenuOpen(false)}
@@ -281,6 +300,15 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
           onClick={() => setShowUserMenu(false)}
         />
       )}
+
+     {/* Premium Modal */}
+
+     {showPremiumModal && (
+       <PremiumModal
+         isOpen={showPremiumModal}
+         onClose={() => setShowPremiumModal(false)}
+       />
+     )}
     </nav>
   );
 };
