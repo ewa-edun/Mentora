@@ -29,6 +29,28 @@ export interface YouTubeResponse {
   duration?: string;
 }
 
+export interface EmotionResponse {
+  emotion: string;
+  confidence: number;
+  message: string;
+  suggestions: {
+    emotion: string;
+    activities: Array<{
+      type: string;
+      title: string;
+      duration: string;
+      description: string;
+      instructions: string[];
+    }>;
+    affirmation: string;
+    color_scheme: {
+      primary: string;
+      secondary: string;
+      bg: string;
+    };
+  };
+}
+
 // Text summarization
 export const summarizeText = async (text: string): Promise<ApiResponse<SummaryResponse>> => {
   try {
@@ -181,6 +203,57 @@ export const askQuestion = async (question: string): Promise<ApiResponse<AnswerR
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Failed to get answer' 
+    };
+  }
+};
+
+// Emotion detection
+export const detectEmotion = async (text: string): Promise<ApiResponse<EmotionResponse>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/detect-emotion`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        text,
+        timestamp: new Date().toISOString()
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error detecting emotion:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to detect emotion' 
+    };
+  }
+};
+
+// Get break suggestions for specific emotion
+export const getBreakSuggestions = async (emotion: string): Promise<ApiResponse<any>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/break-suggestions/${emotion}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error getting break suggestions:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to get break suggestions' 
     };
   }
 };
