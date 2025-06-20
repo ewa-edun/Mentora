@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Youtube, Link, Loader2, Play, Copy, CheckCircle, Download } from 'lucide-react';
+import { summarizeYouTube } from '../../services/api';
 
 const YouTubeSummarizer: React.FC = () => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -22,12 +23,17 @@ const YouTubeSummarizer: React.FC = () => {
     setIsProcessing(true);
     setError('');
     
-    // TODO: Connect to Flask API for YouTube video processing
-    // For now, simulate API call
-    setTimeout(() => {
-      setIsProcessing(false);
+    const result = await summarizeYouTube(youtubeUrl);
+    
+    if (result.success && result.data) {
+      setSummary(result.data.summary);
+    } else {
+      // Fallback to demo data if API fails
+      setError('API not available - showing demo data');
       setSummary("This educational video explains the fundamentals of quantum computing, covering qubits, superposition, and quantum algorithms. Key takeaways include understanding quantum gates and their applications in cryptography. The video demonstrates how quantum computers can solve certain problems exponentially faster than classical computers, particularly in areas like factoring large numbers and simulating quantum systems.");
-    }, 3000);
+    }
+    
+    setIsProcessing(false);
   };
 
   const isValidYouTubeUrl = (url: string) => {
@@ -70,7 +76,7 @@ const YouTubeSummarizer: React.FC = () => {
       <div className="space-y-6">
         {/* URL Input */}
         <div className="relative">
-          <Link className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-black-600" />
+          <Link className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-600" />
           <input
             type="url"
             value={youtubeUrl}
@@ -79,7 +85,7 @@ const YouTubeSummarizer: React.FC = () => {
               setError('');
             }}
             placeholder="https://youtube.com/watch?v=..."
-            className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-line border-red-200 bg-white/20 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-red-400 focus:outline-none transition-all duration-300 font-medium"
+            className="w-full pl-12 pr-4 py-4 rounded-2xl border-0 bg-white/20 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-red-400 focus:outline-none transition-all duration-300 font-medium"
           />
         </div>
 
@@ -154,6 +160,7 @@ const YouTubeSummarizer: React.FC = () => {
             <li>• Works best with educational and tutorial videos</li>
             <li>• Supports both youtube.com and youtu.be links</li>
             <li>• AI extracts key concepts and learning points</li>
+            <li>• Note: Currently showing demo data (API integration needed)</li>
           </ul>
         </div>
       </div>

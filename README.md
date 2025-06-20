@@ -8,8 +8,6 @@
 Mentora is a voice-first AI study coach that adapts to your learning style, emotional state, and study goals. It speaks like a tutor, listens like a friend, and remembers like a mentor.
 Built for students, neurodivergent learners, and self-learners who crave an intuitive and motivating learning experience.
 
-
-
 ## 🧠 What is Mentora?
 
 **Mentora** is a voice-first, emotion-aware AI assistant that helps students **study smarter, feel better**, and stay on track. It’s not just a chatbot — it’s a tutor, a wellness coach, a storyteller, and a friend.
@@ -155,6 +153,239 @@ Mentora is submitted to the **Bolt.new Hackathon** and qualifies for the followi
  Pica & Dappier: Use Pica to rapidly prototype UI and Dappier to add AI copilot features like semantic search or smart help inside your app.
  River: Build a community platform for Mentora users to share tips and host study groups/events.
  Sentry: Monitor errors and optimize performance during and after the hackathon.
+
+---
+## 🚀 How to Run Locally
+
+### Prerequisites
+
+Before you begin, ensure you have the following installed on your system:
+
+- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
+- **Python** (v3.8 or higher) - [Download here](https://python.org/)
+- **Git** - [Download here](https://git-scm.com/)
+- **Tesseract OCR** (for handwritten notes feature)
+
+### 🔧 Installation & Setup
+
+#### 1. Clone the Repository
+```bash
+git clone https://github.com/ewa-edun/Mentora.git
+cd Mentora
+```
+
+### Backend Setup (Flask API)
+
+#### 2. **Navigate to backend directory:**
+```bash
+cd Backed_Flask
+```
+
+#### 3 Create a virtual environment (recommended):
+
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# macOS/Linux
+python3 -m venv venv
+source venv/bin/activate
+```
+
+#### 4 **Install Python dependencies:**
+
+```bash
+pip install -r requirements.txt
+```
+
+#### 5 **Set up environment variables:**
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env and add your API keys
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+**Get your Gemini API Key:**
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Create a new API key
+3. Copy and paste it into your `.env` file
+
+**Install Tesseract OCR (for handwritten notes):**
+
+*macOS:*
+```bash
+brew install tesseract
+```
+
+*Ubuntu/Debian:*
+```bash
+sudo apt-get update
+sudo apt-get install tesseract-ocr
+```
+
+*Windows:*
+- Download from [GitHub Releases](https://github.com/UB-Mannheim/tesseract/wiki)
+- Add Tesseract to your PATH
+
+**Start the Flask backend:**
+```bash
+python app.py
+```
+
+You should see:
+```
+🚀 Starting Mentora Flask Backend...
+📡 API will be available at: http://127.0.0.1:5000
+🔗 Health check: http://127.0.0.1:5000/api/health
+```
+
+### Frontend Setup (React App)
+
+#### 1. **Open a new terminal and navigate to the frontend folder:**
+```bash
+cd frontend
+```
+
+#### 2. **Install Node.js dependencies:**
+```bash
+npm install
+```
+
+#### 3. **Install other dependencies:**
+```bash
+npm install firebase react-router-dom
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init
+```
+
+#### 4. **Set up Firebase (Authentication & Database):**
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create a new project
+3. Enable Authentication (Email/Password and Google)
+4. Enable Firestore Database
+5. Get your Firebase config
+
+#### 5. **Create environment file:**
+```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env and add your Firebase config
+VITE_API_BASE_URL=http://127.0.0.1:5000
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
+```
+
+#### 6. **Start the React development server:**
+```bash
+npm run dev
+```
+
+You should see:
+```
+  VITE v5.0.8  ready in 500 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+```
+
+### 🎯 Testing Your Setup
+
+#### 1. Test Backend API
+Open your browser and visit:
+- **Health Check:** http://127.0.0.1:5000/api/health
+- **Welcome:** http://127.0.0.1:5000/
+
+You should see JSON responses confirming the API is running.
+
+#### 2. Test Frontend
+Open your browser and visit: http://localhost:5173/
+
+You should see the Mentora landing page.
+
+### 🔧 Troubleshooting
+
+#### Common Issues & Solutions
+
+**❌ "Failed to fetch" errors:**
+- Ensure backend is running on http://127.0.0.1:5000
+- Check that CORS is enabled in Flask
+- Verify your `.env` file has the correct API_BASE_URL
+
+**❌ Gemini API errors:**
+- Verify your GEMINI_API_KEY is correct in `backend/.env`
+- Check your API quota at [Google AI Studio](https://makersuite.google.com/)
+- Ensure you have billing enabled if required
+
+**❌ Firebase authentication issues:**
+- Double-check all Firebase config values in `.env`
+- Ensure Authentication is enabled in Firebase Console
+- Verify your domain is added to authorized domains
+
+**❌ OCR not working:**
+- Install Tesseract OCR for your operating system
+- On Windows, ensure Tesseract is in your PATH
+- Test with: `tesseract --version`
+
+**❌ Voice features not working:**
+- Use HTTPS or localhost (required for microphone access)
+- Check browser permissions for microphone
+- Ensure you're using a supported browser (Chrome, Firefox, Safari)
+
+#### Port Conflicts
+
+If ports 5000 or 5173 are already in use:
+
+**Backend (Flask):**
+```bash
+# Run on different port
+python app.py --port 5001
+```
+
+**Frontend (Vite):**
+```bash
+# Run on different port
+npm run dev -- --port 3000
+```
+
+Update your `.env` file accordingly:
+```bash
+VITE_API_BASE_URL=http://127.0.0.1:5001
+```
+
+### 🎉 You're Ready!
+
+Once both servers are running, you can:
+
+1. **📝 Create an account** at http://localhost:5173/signin
+2. **🎙️ Test voice features** in the Voice Assistant page
+3. **📚 Upload PDFs** and get AI summaries
+4. **✍️ Scan handwritten notes** with OCR
+5. **🧠 Generate quizzes** from your study materials
+6. **💬 Chat with AI** for instant help
+
+### 🛠️ Development Tips
+
+**Hot Reloading:**
+- Frontend: Changes auto-reload in browser
+- Backend: Restart Flask server after code changes
+
+**Debugging:**
+- Frontend: Open browser DevTools (F12)
+- Backend: Check terminal output for errors
+
+**API Testing:**
+- Use [Postman](https://postman.com/) or [Insomnia](https://insomnia.rest/)
+- Test endpoints individually before frontend integration
 
 ---
 
