@@ -1,10 +1,10 @@
-# Mentora Design & Storytelling by Sandesh
+# Mentora Design & Storytelling
 
 Welcome! This folder contains all the design, branding, and storytelling assets created for Mentora by Sandesh (UI/UX Designer & Storyteller).
 
-- [Brand Guide](./brand-guide.md)
-- [Storytelling & Illustration Approach](./storytelling.md)
-- [Accessibility Commitment](./accessibility.md)
-- [UI/UX Audit & Feedback](./feedback.md)
-- [User Flows](./user-flows.md)
-- [Sample Illustrations](./illustrations/README.md)
+- [Brand Guide](./design_brand-guide.md)
+- [Storytelling & Illustration Approach](./design_storytelling.md)
+- [Accessibility Commitment](./design_accessibility.md)
+- [UI/UX Audit & Feedback](./design_feedback.md)
+- [User Flows](./design_user-flows.md)
+- [Sample Illustrations](./design_illustrations/README.md)
