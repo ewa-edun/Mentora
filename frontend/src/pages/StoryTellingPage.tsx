@@ -215,7 +215,7 @@ const StorytellingPage: React.FC = () => {
 
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Header */}
-        <header className="backdrop-blur-xl bg-white/10 border-b border-white/20 px-6 py-4">
+        <header className="backdrop-blur-xl glass-card bg-white/10 border-b border-white/20 px-6 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link to="/home" className="flex items-center gap-3 group">
               <ArrowLeft className="w-5 h-5 text-primary-600 group-hover:-translate-x-1 transition-transform" />
@@ -297,7 +297,7 @@ const StorytellingPage: React.FC = () => {
               <div className="space-y-8">
                 {/* Welcome Section */}
                 <div className="text-center mb-12">
-                  <div className="relative mb-8">
+                  <div className="relative mb-6">
                     <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto glow-primary animate-float">
                       <Sparkles className="w-12 h-12 text-white" />
                     </div>
@@ -306,7 +306,7 @@ const StorytellingPage: React.FC = () => {
                     </div>
                   </div>
                   
-                  <h2 className="text-4xl font-serif font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-4">
+                  <h2 className="text-6xl font-serif font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
                     Welcome to Story Mode, {getUserDisplayName()}! ✨
                   </h2>
                   <p className="text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
@@ -337,8 +337,8 @@ const StorytellingPage: React.FC = () => {
                         onClick={() => setSelectedCharacter(character)}
                         className={`p-6 rounded-2xl cursor-pointer transition-all duration-300 transform hover:scale-105 ${
                           selectedCharacter?.id === character.id
-                            ? 'bg-gradient-to-r from-primary-500/20 to-secondary-500/20 border-2 border-primary-500/50 shadow-lg'
-                            : 'bg-white/20 border border-white/30 hover:bg-white/30'
+                            ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50 shadow-lg'
+                            : 'bg-white/30 border border-white/40 hover:bg-white/40 hover:border-white/50'
                         }`}
                       >
                         <div className="text-center">

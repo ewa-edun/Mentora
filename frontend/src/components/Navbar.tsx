@@ -68,7 +68,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 glass-card border-b border-white/20">
+    <nav className="sticky backdrop-blur-xl top-0 z-10 glass-card border-b border-white/20">
       <div className="max-w-7xl mx-auto px-6 py-4 container">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -210,10 +210,10 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
       </div>
 
       {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-white/95 flex flex-col items-center justify-center">
+        {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/95 backdrop-blur-xl">
           {/* Top bar with only X button */}
-          <div className="absolute top-0 left-0 w-full flex justify-end p-4 bg-white/95 z-50">
+          <div className="absolute top-0 left-0 w-full flex justify-end p-4 bg-white/95 z-[110]">
             <button
               className="p-2 rounded-lg hover:bg-indigo-100 transition"
               onClick={() => setMobileMenuOpen(false)}
@@ -223,7 +223,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
             </button>
           </div>
           {/* Centered menu */}
-          <div className="flex flex-col gap-4 items-center w-full max-w-md h-full bg-white/95 rounded-2xl shadow-2xl p-8 mt-16">
+          <div className="flex flex-col gap-4 items-center w-full max-w-md h-full bg-white/95 rounded-2xl shadow-2xl p-8 mt-16 z-[101]">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-gradient-to-br from-lavender-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
                 <Sparkles className="w-5 h-5 text-white" />
@@ -255,7 +255,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
                 </>
               )}
             </button>
-            <button
+             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 navigate('/premium');
@@ -273,7 +273,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
               <UserCircle className="w-5 h-5 text-primary-600" />
               <span>Profile</span>
             </Link>
-            <Link
+               <Link
               to="/profile"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium w-full justify-center bg-indigo-100/80 hover:bg-indigo-200/90 text-neutral-800 transition-all duration-300"

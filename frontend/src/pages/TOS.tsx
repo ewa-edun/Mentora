@@ -62,7 +62,7 @@ const TermsOfService: React.FC = () => {
 
       <div className="relative z-10">
         {/* Navigation */}
-        <nav className="px-6 py-4">
+        <nav className="glass-card px-6 py-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <button onClick={() => window.history.back()} className="flex items-center gap-3 group">
               <ArrowLeft className="w-5 h-5 text-primary-600 group-hover:-translate-x-1 transition-transform" />

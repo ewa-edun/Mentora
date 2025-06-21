@@ -24,7 +24,7 @@ const StudyPage: React.FC = () => {
       <div className="relative z-10">
         {/* Header */}
         <div>
-          <header className="backdrop-blur-xl bg-white/10 border-b border-white/20 px-6 py-4">    
+          <header className="backdrop-blur-xl bg-white/10 border-b border-white/20">    
             <Navbar currentMode="study" onToggleMode={() => {}}/>         
         </header>
         </div>

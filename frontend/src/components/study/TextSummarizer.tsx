@@ -80,7 +80,7 @@ const TextSummarizer: React.FC = () => {
               setError('');
             }}
             placeholder="Paste your text here... (articles, essays, research papers, notes, etc.)"
-            className="w-full h-40 px-4 py-3 border-2 border-line border-gray-300 hover:border-blue-400 rounded-2xl bg-white/20 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all resize-none"
+            className="w-full h-40 px-4 py-3 border-2 border-line border-gray-300 hover:border-blue-400 rounded-2xl bg-white/20 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all resize-none"
             maxLength={10000}
           />
           <div className="absolute bottom-3 right-3 text-xs text-neutral-500">

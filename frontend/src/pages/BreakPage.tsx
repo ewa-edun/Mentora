@@ -20,13 +20,13 @@ const BreakPage: React.FC = () => {
       <div className="relative z-10">
         {/* Header */}
         <div>
-        <header className="backdrop-blur-xl bg-white/10 border-b border-white/20 px-6 py-4">
+        <header className="backdrop-blur-xl bg-white/10 border-b border-white/20">
           <Navbar currentMode="break" onToggleMode={() => {}} /> 
         </header>
         </div>
 
         {/* Main Content */}
-        <main className="px-6 py-8">
+        <main className="px-4 py-6">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
               <div className="relative mb-8">

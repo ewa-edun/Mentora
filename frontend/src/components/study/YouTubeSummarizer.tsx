@@ -85,7 +85,7 @@ const YouTubeSummarizer: React.FC = () => {
               setError('');
             }}
             placeholder="https://youtube.com/watch?v=..."
-            className="w-full pl-12 pr-4 py-4 rounded-2xl border-0 bg-white/20 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-red-400 focus:outline-none transition-all duration-300 font-medium"
+            className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/20 border-2 border-line border-gray-300 rounded-2xl hover:border-red-300 hover:bg-white/30  backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/40 focus:ring-2 focus:ring-red-400 focus:outline-none transition-all duration-300 font-medium"
           />
         </div>
 

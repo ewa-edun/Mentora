@@ -135,7 +135,7 @@ const QuizGenerator: React.FC = () => {
               }}
               placeholder="Enter your study topic or paste your notes here..."
               rows={4}
-              className="w-full p-4 rounded-2xl border-0 bg-white/30 backdrop-blur-sm border-2 border-purple-200 placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all duration-300 resize-none"
+              className="w-full p-4 rounded-2xl bg-white/30 backdrop-blur-sm border-2 border-purple-200 hover:bg-white/30 hover:border-purple-300 placeholder-neutral-600 text-neutral-800 focus:bg-white/40 focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all duration-300 resize-none"
               maxLength={5000}
             />
             <div className="absolute bottom-3 right-3 text-xs text-neutral-500">
@@ -153,7 +153,7 @@ const QuizGenerator: React.FC = () => {
             <select
               value={difficulty}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDifficulty(e.target.value as 'Beginner' | 'Intermediate' | 'Advanced')}
-              className="w-full p-4 rounded-2xl border-2 border-purple-200 bg-white/30 backdrop-blur-sm text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all duration-300 appearance-none cursor-pointer"
+              className="w-full p-4 rounded-2xl border-2 border-purple-200 bg-white/30 border-2 border-purple-200 hover:bg-white/40 hover:border-purple-300 backdrop-blur-sm text-neutral-800 focus:bg-white/50 focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all duration-300 appearance-none cursor-pointer"
             >
               <option value="Beginner">Beginner</option>
               <option value="Intermediate">Intermediate</option>

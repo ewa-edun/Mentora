@@ -154,7 +154,7 @@ const EmotionDetection: React.FC<EmotionDetectionProps> = ({ onEmotionDetected }
             value={transcription}
             onChange={(e) => setTranscription(e.target.value)}
             placeholder="Or type how you're feeling... (e.g., 'I'm feeling stressed about my exams' or 'I'm really tired today')"
-            className="w-full px-6 py-4 rounded-2xl border-0 bg-white/50 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-pink-400 focus:outline-none transition-all duration-300 resize-none"
+            className="w-full px-6 py-4 rounded-2xl bg-white/50 border-2 border-pink-200 hover:bg-white/60 hover:border-pink-300 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/50 focus:ring-2 focus:ring-pink-400 focus:outline-none transition-all duration-300 resize-none"
             rows={3}
             disabled={isListening || isProcessing}
           />
