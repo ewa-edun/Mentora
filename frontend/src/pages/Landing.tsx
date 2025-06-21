@@ -66,7 +66,7 @@ const Landing: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
       {/* Navigation */}
-      <nav className="relative z-50 px-6 py-4">
+      <nav className="relative glass-card z-50 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">

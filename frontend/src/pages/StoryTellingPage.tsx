@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX, Sparkles, Star, BookOpen,  Settings, Download, Share2, Loader2, CheckCircle, AlertTriangle, Square } from 'lucide-react';
 import { getCurrentUser } from '../services/firebase';
 import { generateStory, generateVoiceNarration, generateAvatarVideo, getStoryCharacters, StoryCharacter } from '../services/api';
+import VoicePanel from '../components/VoicePanel';
+
 
 interface StorySession {
   id: string;
@@ -647,6 +649,8 @@ const StorytellingPage: React.FC = () => {
             )}
           </div>
         </main>
+
+        <VoicePanel />
       </div>
     </div>
   );
