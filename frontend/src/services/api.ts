@@ -29,6 +29,45 @@ export interface YouTubeResponse {
   duration?: string;
 }
 
+
+export interface StoryRequest {
+  topic: string;
+  character: {
+    id: string;
+    name: string;
+    personality: string;
+    voiceId: string;
+  };
+  emotion: string;
+  duration?: number;
+}
+
+export interface StoryResponse {
+  title: string;
+  content: string;
+  duration: number;
+  audioUrl?: string;
+  videoUrl?: string;
+}
+
+export interface AvatarVideoRequest {
+  script: string;
+  character: {
+    id: string;
+    name: string;
+    personality: string;
+  };
+  emotion: string;
+}
+
+export interface VoiceRequest {
+  text: string;
+  voiceId: string;
+  emotion: string;
+  speed?: number;
+  pitch?: number;
+}
+
 export interface EmotionResponse {
   emotion: string;
   confidence: number;
@@ -254,6 +293,86 @@ export const getBreakSuggestions = async (emotion: string): Promise<ApiResponse<
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Failed to get break suggestions' 
+    };
+  }
+};
+
+// Storytelling API service
+
+// Generate story content using Gemini
+export const generateStory = async (request: StoryRequest): Promise<{ success: boolean; data?: StoryResponse; error?: string }> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/generate-story`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error generating story:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to generate story' 
+    };
+  }
+};
+
+// Generate avatar video using Tavus
+export const generateAvatarVideo = async (request: AvatarVideoRequest): Promise<{ success: boolean; data?: { videoUrl: string }; error?: string }> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/generate-avatar-video`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error generating avatar video:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to generate avatar video' 
+    };
+  }
+};
+
+// Generate voice narration using ElevenLabs
+export const generateVoiceNarration = async (request: VoiceRequest): Promise<{ success: boolean; data?: { audioUrl: string }; error?: string }> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/generate-voice`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error generating voice narration:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to generate voice narration' 
     };
   }
 };

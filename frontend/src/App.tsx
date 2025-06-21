@@ -3,6 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import ScrollToTop from '../src/components/ScrollToTop';
 import Landing from '../src/pages/Landing';
 import Home from '../src/pages/Home';
+import StudyPage from '../src/pages/StudyPage';
+import BreakPage from '../src/pages/BreakPage';
 import VoicePage from '../src/pages/VoicePage';
 import NotFound from '../src/pages/NotFound';
 import ServerError from '../src/pages/ServerError';
@@ -12,6 +14,8 @@ import Login from '../src/pages/Auth/Login';
 import SignIn from '../src/pages/Auth/SignIn';
 import ForgotPassword from '../src/pages/Auth/ForgotPassword';
 import Profile from '../src/pages/Profile';
+import Premium from '../src/pages/Premium';
+import StorytellingPage from './pages/StoryTellingPage';
 
 // Importing Footer component for consistent layout
 import Footer from '../src/components/Footer';
@@ -27,9 +31,12 @@ function App() {
       <Route path="/profile" element={<Profile />} />
 
       {/* Additional Routes */}
+      <Route path="/study" element={<StudyPage />} />
+      <Route path="/break" element={<BreakPage />} />
       <Route path="/voice" element={<VoicePage />} />
-      
-      {/* Study Routes */}
+      <Route path="/premium" element={<Premium />} />
+      <Route path="/storytelling" element={<StorytellingPage />} />
+     
       {/* Legal Routes */}
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />

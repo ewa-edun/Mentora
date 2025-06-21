@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Send, Loader2, Brain, Sparkles,MessageCircle, Copy, CheckCircle, Settings, Heart, Star, Trash2, Download, Share2, Pause, Play, Square } from 'lucide-react';
+import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Send, Loader2, Brain, Sparkles, MessageCircle, Copy, CheckCircle, Settings, Heart, Star, Trash2, Download, Share2, Pause, Play, Square } from 'lucide-react';
 import { askQuestion } from '../services/api';
 import { getCurrentUser } from '../services/firebase';
 
@@ -27,8 +27,8 @@ const VoicePage: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [voiceSpeed, setVoiceSpeed] = useState(0.9);
   const [voicePitch, setVoicePitch] = useState(1);
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const chatWindowRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -82,20 +82,18 @@ const VoicePage: React.FC = () => {
     };
   }, [navigate]);
 
+  // Scroll only the chat window to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+    if (chatWindowRef.current) {
+      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+    }
+  }, [messages, isProcessing]);
 
   const startListening = () => {
     if (!recognitionRef.current) {
       setError('Voice recognition not supported in this browser');
       return;
     }
-
     setIsListening(true);
     setError('');
     recognitionRef.current.start();
@@ -110,15 +108,11 @@ const VoicePage: React.FC = () => {
 
   const speakText = (text: string) => {
     if (!synthRef.current || !voiceEnabled) return;
-
-    // Cancel any ongoing speech
     synthRef.current.cancel();
-
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = voiceSpeed;
     utterance.pitch = voicePitch;
     utterance.volume = 0.8;
-
     utterance.onstart = () => {
       setIsSpeaking(true);
       setIsPaused(false);
@@ -131,7 +125,6 @@ const VoicePage: React.FC = () => {
       setIsSpeaking(false);
       setIsPaused(false);
     };
-
     currentUtteranceRef.current = utterance;
     synthRef.current.speak(utterance);
   };
@@ -178,7 +171,7 @@ const VoicePage: React.FC = () => {
 
     try {
       const result = await askQuestion(messageContent);
-      
+
       if (result.success && result.data) {
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -229,10 +222,10 @@ const VoicePage: React.FC = () => {
   };
 
   const handleDownload = () => {
-    const conversationText = messages.map(msg => 
+    const conversationText = messages.map(msg =>
       `${msg.type === 'user' ? 'You' : 'Mentora'} (${msg.timestamp.toLocaleTimeString()}): ${msg.content}`
     ).join('\n\n');
-    
+
     const blob = new Blob([conversationText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -265,10 +258,15 @@ const VoicePage: React.FC = () => {
     }
   };
 
+  // For Mentora's chat bubble color (thinking and answered)
+  const mentoraBubbleColor = isProcessing
+    ? 'bg-gradient-to-r from-blue-100 via-indigo-100 to-white border-blue-200'
+    : 'bg-gradient-to-r from-indigo-50 via-white to-blue-50 border-indigo-100';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 relative overflow-hidden">
-      {/* Animated background elements - consistent with app */}
-      <div className="absolute inset-0">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-20 w-32 h-32 bg-primary-200/30 rounded-full blur-xl animate-float"></div>
         <div className="absolute top-40 right-32 w-24 h-24 bg-secondary-200/30 rounded-full blur-lg animate-float" style={{ animationDelay: '2s' }}></div>
         <div className="absolute bottom-32 left-1/3 w-40 h-40 bg-primary-100/40 rounded-full blur-2xl animate-float" style={{ animationDelay: '4s' }}></div>
@@ -276,16 +274,16 @@ const VoicePage: React.FC = () => {
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Header*/}
+        {/* Header */}
         <header className="backdrop-blur-xl glass-card bg-white/20 border-b border-white/30 px-6 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link 
-                to="/home" 
+              <Link
+                to="/home"
                 className="flex items-center gap-3 text-primary-600 hover:text-primary-700 transition-colors group"
               >
                 <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                <span className="font-medium">Back to Dashboard</span>
+                <span className="font-medium">Back to Home</span>
               </Link>
             </div>
 
@@ -310,18 +308,18 @@ const VoicePage: React.FC = () => {
               >
                 <Settings className="w-5 h-5" />
               </button>
-              
+
               <button
                 onClick={() => setVoiceEnabled(!voiceEnabled)}
                 className={`p-3 rounded-xl backdrop-blur-xl border border-white/20 transition-all duration-300 ${
-                  voiceEnabled 
-                    ? 'bg-green-100/60 text-green-600 hover:bg-green-100/80' 
+                  voiceEnabled
+                    ? 'bg-green-100/60 text-green-600 hover:bg-green-100/80'
                     : 'bg-red-100/60 text-red-600 hover:bg-red-100/80'
                 }`}
               >
                 {voiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
               </button>
-              
+
               {messages.length > 0 && (
                 <>
                   <button
@@ -330,7 +328,7 @@ const VoicePage: React.FC = () => {
                   >
                     <Download className="w-5 h-5" />
                   </button>
-                  
+
                   <button
                     onClick={clearConversation}
                     className="p-3 rounded-xl backdrop-blur-xl bg-red-100/60 border border-red-200/50 text-red-600 hover:text-red-700 hover:bg-red-100/80 transition-all duration-300"
@@ -398,15 +396,15 @@ const VoicePage: React.FC = () => {
                       <Heart className="w-4 h-4 text-white" />
                     </div>
                   </div>
-                  
+
                   <h2 className="text-4xl font-serif font-bold bg-gradient-to-r from-rose-400 to-red-300 bg-clip-text text-transparent mb-4">
                     Hello, {getUserDisplayName()}! 👋
                   </h2>
                   <p className="text-xl text-neutral-600 mb-8 leading-relaxed">
-                    I'm your AI study companion, ready to help you learn, explore, and grow. 
+                    I'm your AI study companion, ready to help you learn, explore, and grow.
                     Ask me anything or just start a conversation!
                   </p>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mb-6">
                     <div className="backdrop-blur-xl bg-white/40 border border-white/20 rounded-2xl p-6 hover:bg-white/70 hover:border-white/30 transition-all duration-300 group">
                       <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -437,126 +435,127 @@ const VoicePage: React.FC = () => {
             )}
 
             {/* Messages List */}
-            {messages.length > 0 && (
-              <div className="flex-1 overflow-y-auto space-y-6 mb-6 pr-4">
-                {messages.map((message) => (
+            <div
+              ref={chatWindowRef}
+              className="flex-1 overflow-y-auto space-y-6 mb-6 pr-4 custom-scrollbar"
+              style={{ maxHeight: '60vh', minHeight: '200px' }}
+            >
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+                >
                   <div
-                    key={message.id}
-                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+                    className={`max-w-4xl p-6 rounded-3xl border transition-all duration-300 hover:scale-[1.02] ${
+                      message.type === 'user'
+                        ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-neutral-800'
+                        : mentoraBubbleColor + ' text-neutral-800'
+                    }`}
                   >
-                    <div
-                      className={`max-w-4xl p-6 rounded-3xl backdrop-blur-xl border transition-all duration-300 hover:scale-[1.02] ${
-                        message.type === 'user'
-                          ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-neutral-800'
-                          : 'bg-white/10 border-white/20 text-neutral-800'
-                      }`}
-                    >
-                      <div className="flex items-start gap-4">
-                        {message.type === 'assistant' && (
-                          <div className={`w-12 h-12 bg-gradient-to-r ${getEmotionColor(message.emotion)} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                            <Brain className="w-6 h-6 text-white" />
-                          </div>
-                        )}
-                        
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className="text-lg font-serif font-bold">
-                              {message.type === 'user' ? 'You' : 'Mentora'}
-                            </span>
-                            {message.isVoice && (
-                              <div className="flex items-center gap-1 bg-green-500/20 px-2 py-1 rounded-full">
-                                <Mic className="w-3 h-3 text-green-600" />
-                                <span className="text-xs text-green-600 font-medium">Voice</span>
-                              </div>
-                            )}
-                            <span className="text-sm text-neutral-500">
-                              {message.timestamp.toLocaleTimeString()}
-                            </span>
-                            {message.type === 'user' && (
-                              <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <span className="text-white font-bold text-sm">
-                                  {getUserDisplayName().charAt(0).toUpperCase()}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <p className="leading-relaxed whitespace-pre-wrap text-lg">{message.content}</p>
-                          
-                          {message.type === 'assistant' && (
-                            <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
-                              <button
-                                onClick={() => handleCopy(message.content, message.id)}
-                                className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/20 px-3 py-2 rounded-xl hover:bg-white/30"
-                              >
-                                {copied === message.id ? (
-                                  <>
-                                    <CheckCircle className="w-4 h-4 text-green-500" />
-                                    <span>Copied!</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="w-4 h-4" />
-                                    <span>Copy</span>
-                                  </>
-                                )}
-                              </button>
-                              
-                              {voiceEnabled && (
-                                <button
-                                  onClick={() => speakText(message.content)}
-                                  className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/20 px-3 py-2 rounded-xl hover:bg-white/30"
-                                >
-                                  <Volume2 className="w-4 h-4" />
-                                  <span>Speak</span>
-                                </button>
-                              )}
-                              
-                              <button
-                                onClick={() => handleShare(message.content)}
-                                className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/20 px-3 py-2 rounded-xl hover:bg-white/30"
-                              >
-                                <Share2 className="w-4 h-4" />
-                                <span>Share</span>
-                              </button>
-                              
-                              <button
-                                className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 transition-colors bg-amber-100/60 px-3 py-2 rounded-xl hover:bg-amber-100/80"
-                              >
-                                <Star className="w-4 h-4" />
-                                <span>Save</span>
-                              </button>
+                    <div className="flex items-start gap-4">
+                      {message.type === 'assistant' && (
+                        <div className={`w-12 h-12 bg-gradient-to-r ${getEmotionColor(message.emotion)} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                          <Brain className="w-6 h-6 text-white" />
+                        </div>
+                      )}
+
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="text-lg font-serif font-bold">
+                            {message.type === 'user' ? 'You' : 'Mentora'}
+                          </span>
+                          {message.isVoice && (
+                            <div className="flex items-center gap-1 bg-green-500/20 px-2 py-1 rounded-full">
+                              <Mic className="w-3 h-3 text-green-600" />
+                              <span className="text-xs text-green-600 font-medium">Voice</span>
+                            </div>
+                          )}
+                          <span className="text-sm text-neutral-500">
+                            {message.timestamp.toLocaleTimeString()}
+                          </span>
+                          {message.type === 'user' && (
+                            <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                              <span className="text-white font-bold text-sm">
+                                {getUserDisplayName().charAt(0).toUpperCase()}
+                              </span>
                             </div>
                           )}
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                {isProcessing && (
-                  <div className="flex justify-start animate-fadeIn">
-                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 p-6 rounded-3xl">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-green-200 to-green-400 rounded-2xl flex items-center justify-center">
-                          <Brain className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
-                          <span className="text-neutral-700">Mentora is thinking...</span>
-                          <div className="flex gap-1">
-                            <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-secondary-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+
+                        <p className="leading-relaxed whitespace-pre-wrap text-lg">{message.content}</p>
+
+                        {message.type === 'assistant' && (
+                          <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
+                            <button
+                              onClick={() => handleCopy(message.content, message.id)}
+                              className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/20 px-3 py-2 rounded-xl hover:bg-white/30"
+                            >
+                              {copied === message.id ? (
+                                <>
+                                  <CheckCircle className="w-4 h-4 text-green-500" />
+                                  <span>Copied!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-4 h-4" />
+                                  <span>Copy</span>
+                                </>
+                              )}
+                            </button>
+
+                            {voiceEnabled && (
+                              <button
+                                onClick={() => speakText(message.content)}
+                                className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/20 px-3 py-2 rounded-xl hover:bg-white/30"
+                              >
+                                <Volume2 className="w-4 h-4" />
+                                <span>Speak</span>
+                              </button>
+                            )}
+
+                            <button
+                              onClick={() => handleShare(message.content)}
+                              className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/20 px-3 py-2 rounded-xl hover:bg-white/30"
+                            >
+                              <Share2 className="w-4 h-4" />
+                              <span>Share</span>
+                            </button>
+
+                            <button
+                              className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 transition-colors bg-amber-100/60 px-3 py-2 rounded-xl hover:bg-amber-100/80"
+                            >
+                              <Star className="w-4 h-4" />
+                              <span>Save</span>
+                            </button>
                           </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {isProcessing && (
+                <div className="flex justify-start animate-fadeIn">
+                  <div className={`max-w-4xl p-6 rounded-3xl border ${mentoraBubbleColor} transition-all duration-300 hover:scale-[1.02]`}>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-2xl flex items-center justify-center">
+                        <Brain className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
+                        <span className="text-neutral-700">Mentora is thinking...</span>
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-secondary-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                         </div>
                       </div>
                     </div>
                   </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-            )}
+                </div>
+              )}
+            </div>
 
             {/* Error Message */}
             {error && (
@@ -628,9 +627,9 @@ const VoicePage: React.FC = () => {
                     onKeyPress={handleKeyPress}
                     placeholder={isListening ? "🎤 Listening..." : "Type your message or use voice..."}
                     disabled={isListening || isProcessing}
-                    className="w-full px-6 py-4 rounded-2xl border-0 bg-white/100 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300 resize-none text-lg"
+                    className="w-full px-6 py-4 rounded-2xl border-0 bg-white/100 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300 resize-none text-lg custom-scrollbar"
                     rows={1}
-                    style={{ minHeight: '64px', maxHeight: '160px' }}
+                    style={{ minHeight: '64px', maxHeight: '160px', overflowY: 'auto' }}
                   />
                   <div className="absolute bottom-2 right-2 text-xs text-neutral-500">
                     {textInput.length}/1000
@@ -673,6 +672,21 @@ const VoicePage: React.FC = () => {
           </div>
         </main>
       </div>
+      {/* Custom scrollbar styles */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 7px;
+          background: #f3f4f6;
+          border-radius: 14px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, #a5b4fc 0%, #818cf8 100%);
+          border-radius: 14px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+        }
+      `}</style>
     </div>
   );
 };

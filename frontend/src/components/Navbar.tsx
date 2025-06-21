@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Coffee, UserCircle, LogOut, Settings, ChevronDown, Sparkles, Menu, X, Crown } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '../services/firebase';
-import PremiumModal from './PremiumModal';
 
 interface NavbarProps {
   currentMode: 'study' | 'break';
@@ -17,7 +16,6 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
   }
   const [user, setUser] = useState<User | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -28,7 +26,6 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
       setUser({
         displayName: firebaseUser.displayName ?? undefined,
         email: firebaseUser.email ?? undefined,
-        // Add other properties as needed
       });
     } else {
       setUser(null);
@@ -60,6 +57,16 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
     return name.charAt(0).toUpperCase();
   };
 
+  // Logic for mode toggle button
+  const handleModeButton = () => {
+    if (currentMode === 'study') {
+      navigate('/break');
+    } else {
+      navigate('/study');
+    }
+    onToggleMode();
+  };
+
   return (
     <nav className="sticky top-0 z-50 glass-card border-b border-white/20">
       <div className="max-w-7xl mx-auto px-6 py-4 container">
@@ -72,16 +79,18 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
               </div>
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-pink-400 to-rose-400 rounded-full animate-pulse-soft"></div>
             </div>
+            <Link to="/home" className="text-neutral-800 hover:text-neutral-900 transition-colors">
             <h1 className="text-3xl font-serif font-bold text-gradient">
               Mentora
             </h1>
+            </Link>
           </div>
 
           {/* Desktop Mode Toggle */}
           <div className="hidden md:flex items-center space-x-4">
             <div className="glass-card rounded-full p-1">
               <button
-                onClick={onToggleMode}
+                onClick={handleModeButton}
                 className={`relative flex items-center space-x-2 px-6 py-3 rounded-full font-medium transition-all duration-300 transform hover:scale-105 ${
                   currentMode === 'study'
                     ? 'bg-gradient-to-r from-emerald-400 to-teal-500 text-white shadow-lg'
@@ -103,12 +112,12 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
               </button>
             </div>
             <button
-                onClick={() => setShowPremiumModal(true)}
-                className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300"
-              >
-                <Crown className="w-4 h-4" />
-                <span>Upgrade</span>
-              </button>
+              onClick={() => navigate('/premium')}
+              className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+            >
+              <Crown className="w-4 h-4" />
+              <span>Upgrade</span>
+            </button>
           </div>
 
           {/* Desktop User Menu */}
@@ -225,7 +234,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
             </div>
             <button
               onClick={() => {
-                onToggleMode();
+                handleModeButton();
                 setMobileMenuOpen(false);
               }}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 w-full justify-center ${
@@ -247,15 +256,15 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
               )}
             </button>
             <button
-                onClick={() => {
-                  setShowPremiumModal(true);
-                  setMobileMenuOpen(false);
-                }}
-                className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300 w-full justify-center"
-              >
-                <Crown className="w-4 h-4" />
-                <span>Upgrade</span>
-              </button>
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navigate('/premium');
+              }}
+              className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300 w-full justify-center"
+            >
+              <Crown className="w-4 h-4" />
+              <span>Upgrade</span>
+            </button>
             <Link
               to="/profile"
               onClick={() => setMobileMenuOpen(false)}
@@ -300,15 +309,6 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
           onClick={() => setShowUserMenu(false)}
         />
       )}
-
-     {/* Premium Modal */}
-
-     {showPremiumModal && (
-       <PremiumModal
-         isOpen={showPremiumModal}
-         onClose={() => setShowPremiumModal(false)}
-       />
-     )}
     </nav>
   );
 };

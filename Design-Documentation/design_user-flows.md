@@ -1,4 +1,5 @@
 # User Flows
+Study Mode → AI Summary/Quiz → [NEW] Story Mode → Break Mode → Emotion Detection
 
 ## Onboarding Journey
 1. User lands on Mentora homepage.
