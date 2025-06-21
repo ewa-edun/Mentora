@@ -11,8 +11,8 @@ def text_to_speech(text, voice_id="21m00Tcm4TlvDq8ikWAM", emotion="neutral", spe
     """
     Convert text to speech using ElevenLabs API with emotion and character support
     """
-    if not ELEVENLABS_API_KEY:
-        print("❌ ElevenLabs API key not configured")
+    if not ELEVENLABS_API_KEY or ELEVENLABS_API_KEY == 'your_elevenlabs_api_key_here':
+        print("❌ ElevenLabs API key not configured - using browser speech synthesis fallback")
         return None, "ElevenLabs API key not configured"
     
     print(f"🎙️ Generating speech with ElevenLabs...")
@@ -20,7 +20,7 @@ def text_to_speech(text, voice_id="21m00Tcm4TlvDq8ikWAM", emotion="neutral", spe
     print(f"   Emotion: {emotion}")
     print(f"   Text length: {len(text)} characters")
     
-    # Character voice mapping
+    # Character voice mapping - using actual ElevenLabs voice IDs
     character_voices = {
         'wise-mentor': '21m00Tcm4TlvDq8ikWAM',  # Rachel - wise, mature
         'playful-friend': 'AZnzlk1XvdvUeBnXmlld',  # Domi - young, energetic  
@@ -32,6 +32,11 @@ def text_to_speech(text, voice_id="21m00Tcm4TlvDq8ikWAM", emotion="neutral", spe
     # Use character voice if provided
     actual_voice_id = character_voices.get(voice_id, voice_id)
     print(f"   Using voice ID: {actual_voice_id}")
+    
+    # Limit text length to avoid API abuse
+    if len(text) > 500:
+        text = text[:500] + "..."
+        print(f"⚠️ Text truncated to 500 characters to avoid API limits")
     
     # Emotion-based voice settings
     emotion_settings = {
@@ -59,9 +64,7 @@ def text_to_speech(text, voice_id="21m00Tcm4TlvDq8ikWAM", emotion="neutral", spe
         "text": text,
         "model_id": "eleven_monolingual_v1",
         "voice_settings": {
-            **settings,
-            "speed": speed,
-            "pitch": pitch
+            **settings
         }
     }
     
@@ -74,6 +77,15 @@ def text_to_speech(text, voice_id="21m00Tcm4TlvDq8ikWAM", emotion="neutral", spe
         if response.status_code == 200:
             print(f"✅ ElevenLabs Success: Generated {len(response.content)} bytes of audio")
             return response.content, None
+        elif response.status_code == 401:
+            error_msg = "ElevenLabs API authentication failed. Please check your API key or upgrade your plan."
+            print(f"❌ {error_msg}")
+            print(f"   Response: {response.text}")
+            return None, error_msg
+        elif response.status_code == 429:
+            error_msg = "ElevenLabs API rate limit exceeded. Please wait or upgrade your plan."
+            print(f"❌ {error_msg}")
+            return None, error_msg
         else:
             error_msg = f"ElevenLabs API error: {response.status_code} - {response.text}"
             print(f"❌ {error_msg}")
@@ -90,8 +102,34 @@ def text_to_speech(text, voice_id="21m00Tcm4TlvDq8ikWAM", emotion="neutral", spe
 
 def get_available_voices():
     """Get list of available voices with character mapping"""
-    if not ELEVENLABS_API_KEY:
-        return []
+    if not ELEVENLABS_API_KEY or ELEVENLABS_API_KEY == 'your_elevenlabs_api_key_here':
+        # Return demo voices when API key is not configured
+        return [
+            {
+                'voice_id': 'wise-mentor',
+                'name': 'Wise Mentor',
+                'character': 'Mento the Wise Owl',
+                'personality': 'wise, patient'
+            },
+            {
+                'voice_id': 'playful-friend',
+                'name': 'Playful Friend',
+                'character': 'Luna the Curious Cat',
+                'personality': 'playful, energetic'
+            },
+            {
+                'voice_id': 'calm-guide',
+                'name': 'Calm Guide',
+                'character': 'Sage the Calm Dragon',
+                'personality': 'calm, protective'
+            },
+            {
+                'voice_id': 'energetic-coach',
+                'name': 'Energetic Coach',
+                'character': 'Spark the Energetic Fox',
+                'personality': 'energetic, fun'
+            }
+        ]
     
     url = "https://api.elevenlabs.io/v1/voices"
     headers = {"xi-api-key": ELEVENLABS_API_KEY}
@@ -121,7 +159,7 @@ def get_available_voices():
 
 def clone_voice(name, description, files):
     """Clone a voice using ElevenLabs voice cloning"""
-    if not ELEVENLABS_API_KEY:
+    if not ELEVENLABS_API_KEY or ELEVENLABS_API_KEY == 'your_elevenlabs_api_key_here':
         return None, "ElevenLabs API key not configured"
     
     url = "https://api.elevenlabs.io/v1/voices/add"

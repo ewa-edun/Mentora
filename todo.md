@@ -100,6 +100,8 @@ Provide a URL to a publicly available version of the project that is fully funct
 Confirm usage of Bolt.new to build the project and show the ‘Built with Bolt.new’ badge on your public project.
 Provide the email used to build the project on Bolt.new. This email must be associated with the usage of Bolt.new to built the submitted project.
 
-PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
-I still havent integerated everything else with firebase firestore, will do that later. also add supabase for media storage.
-Improve quiz answers, break emotion mode as that thing is not that accurate.
+1. PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
+2. Add two files as backup demo data: /demo/avatar-video.mp4  and /demo/voice-narration.mp3
+3. Fix the elevenlabs and tavus issue
+4. I still havent integerated everything else with firebase firestore, will do that later. 
+5. Integerate with supabase storage for media storage. 
