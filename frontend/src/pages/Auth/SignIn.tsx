@@ -103,9 +103,25 @@ const SignIn: React.FC = () => {
               <div className="w-20 h-20 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-2xl flex items-center justify-center mx-auto glow-primary animate-float">
                 <Brain className="w-10 h-10 group-hover:-translate-x-1 transition-transform" />
               </div>
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
+               <div className="absolute -top-2 -right-2 w-15 h-15 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
+                 <a
+                  href="https://bolt.new/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Powered by Bolt.new"
+                  className="block w-16 h-16"
+                >
+                 <img
+                  src='../../public/white_bolt.png'
+                  alt="Bolt.new logo"
+                  className="w-16 h-16 object-contain"
+                  draggable={false}
+                 />
+                 </a>
+                  </div>
+                    <div className="absolute -bottom-2 -left-2 w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
+                      <Sparkles className="w-4 h-4 text-white" />
+                   </div>
             </div>
             <h1 className="text-3xl font-serif font-bold text-gradient mb-2">Join Mentora</h1>
             <p className="text-neutral-600">Start your personalized learning journey today</p>

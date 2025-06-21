@@ -118,10 +118,26 @@ const Premium: React.FC = () => {
               <div className="w-24 h-24 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto glow-error animate-float">
                 <Crown className="w-12 h-12 text-white" />
               </div>
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-purple-400 to-blue-500 rounded-full flex items-center justify-center animate-pulse-slow">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
-            </div>
+              <div className="absolute -top-2 -right-2 w-15 h-15 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
+                <a
+                  href="https://bolt.new/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Powered by Bolt.new"
+                  className="block w-16 h-16"
+                >
+                <img
+                  src='../../public/white_bolt.png'
+                  alt="Bolt.new logo"
+                  className="w-16 h-16 object-contain"
+                  draggable={false}
+                />
+               </a>
+             </div>
+             <div className="absolute -bottom-2 -left-2 w-8 h-8 bg-gradient-to-r from-purple-400 to-blue-500 rounded-full flex items-center justify-center animate-pulse-slow">
+               <Sparkles className="w-4 h-4 text-white" />
+             </div>
+           </div>
             
             <h1 className="text-5xl md:text-6xl font-serif font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent mb-6">
               Mentora+
