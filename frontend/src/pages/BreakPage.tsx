@@ -1,6 +1,6 @@
 import React from 'react';
 //import { Link } from 'react-router-dom';
-import { Heart, Sparkles } from 'lucide-react';
+import { Coffee, Sparkles } from 'lucide-react';
 import BreakMode from '../components/BreakMode';
 import VoicePanel from '../components/VoicePanel';
 import Navbar from '../components/Navbar';
@@ -31,7 +31,7 @@ const BreakPage: React.FC = () => {
             <div className="text-center mb-12">
               <div className="relative mb-8">
                 <div className="w-24 h-24 bg-gradient-to-r from-rose-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto glow-error animate-float">
-                  <Heart className="w-12 h-12 text-white" />
+                  <Coffee className="w-12 h-12 text-white" />
                 </div>
                 <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
                   <Sparkles className="w-4 h-4 text-white" />

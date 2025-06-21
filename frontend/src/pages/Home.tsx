@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Brain, Heart, BookOpen, Mic, Sparkles, ArrowRight, User, LogOut, Settings, ChevronDown, Crown, FileText, Camera, Youtube} from 'lucide-react';
+import { Brain, Coffee, BookOpen, Mic, Sparkles, ArrowRight, User, LogOut, Settings, ChevronDown, Crown, FileText, Camera, Youtube} from 'lucide-react';
 import { getCurrentUser, logoutUser } from '../services/firebase';
 import VoicePanel from '../components/VoicePanel';
 
@@ -234,7 +234,7 @@ const StudentDashboard: React.FC = () => {
                 <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-2 group-hover:shadow-3xl">
                   <div className="text-center">
                     <div className="w-20 h-20 bg-gradient-to-r from-rose-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform shadow-lg glow-error">
-                      <Heart className="w-10 h-10 text-white" />
+                      <Coffee className="w-10 h-10 text-white" />
                     </div>
                     <h2 className="text-3xl font-serif font-bold text-neutral-800 mb-4">🧘 Break Mode</h2>
                     <p className="text-neutral-600 mb-6 leading-relaxed">

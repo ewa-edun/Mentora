@@ -101,3 +101,4 @@ Confirm usage of Bolt.new to build the project and show the ‘Built with Bolt.n
 Provide the email used to build the project on Bolt.new. This email must be associated with the usage of Bolt.new to built the submitted project.
 
 PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
+I still havent integerated everything else with firebase firestore, will do that later. also add supabase for media storage.
