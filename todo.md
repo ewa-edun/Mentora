@@ -100,3 +100,4 @@ Provide a URL to a publicly available version of the project that is fully funct
 Confirm usage of Bolt.new to build the project and show the ‘Built with Bolt.new’ badge on your public project.
 Provide the email used to build the project on Bolt.new. This email must be associated with the usage of Bolt.new to built the submitted project.
 
+PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER

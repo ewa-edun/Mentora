@@ -25,10 +25,33 @@ export interface OCRResponse {
 
 export interface YouTubeResponse {
   summary: string;
-  title?: string;
-  duration?: string;
+  video_info?: {
+    title: string;
+    video_id: string;
+    duration?: string;
+    transcript_length?: number;
+  };
+  metadata?: {
+    processing_time: string;
+    content_type: string;
+    quality: string;
+  };
 }
 
+export interface YouTubeErrorResponse {
+  error: string;
+  message: string;
+  suggestions: string[];
+  video_info?: {
+    title: string;
+    video_id: string;
+    content_type: string;
+  };
+  help?: {
+    title: string;
+    tips: string[];
+  };
+}
 
 export interface StoryRequest {
   topic: string;
@@ -168,8 +191,8 @@ export const extractTextFromImage = async (file: File): Promise<ApiResponse<OCRR
   }
 };
 
-// YouTube video summarization
-export const summarizeYouTube = async (url: string): Promise<ApiResponse<YouTubeResponse>> => {
+// YouTube video summarization with enhanced error handling
+export const summarizeYouTube = async (url: string): Promise<ApiResponse<YouTubeResponse | YouTubeErrorResponse>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/summarize-youtube`, {
       method: 'POST',
@@ -179,17 +202,23 @@ export const summarizeYouTube = async (url: string): Promise<ApiResponse<YouTube
       body: JSON.stringify({ url }),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
     const data = await response.json();
-    return { success: true, data };
+
+    if (response.ok && data.success) {
+      return { success: true, data };
+    } else {
+      // Return the detailed error information from the backend
+      return { 
+        success: false, 
+        error: data.error || 'Failed to summarize YouTube video',
+        data: data // Include all error details
+      };
+    }
   } catch (error) {
     console.error('Error summarizing YouTube video:', error);
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'Failed to summarize YouTube video' 
+      error: error instanceof Error ? error.message : 'Network error - please check your connection' 
     };
   }
 };
