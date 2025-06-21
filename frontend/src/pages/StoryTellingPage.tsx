@@ -1,27 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX, Sparkles, Star, BookOpen, Settings, Download, Share2 } from 'lucide-react';
+import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX, Sparkles, Star, BookOpen,  Settings, Download, Share2, Loader2, CheckCircle, AlertTriangle, Square } from 'lucide-react';
 import { getCurrentUser } from '../services/firebase';
-//import { generateStory, generateAvatarVideo, generateVoiceNarration,  } from '../services/api';
-
-
-interface StoryCharacter {
-  id: string;
-  name: string;
-  personality: string;
-  avatar: string;
-  voiceId: string;
-  description: string;
-}
+import { generateStory, generateVoiceNarration, generateAvatarVideo, getStoryCharacters, StoryCharacter } from '../services/api';
 
 interface StorySession {
   id: string;
   title: string;
   content: string;
-  characters: StoryCharacter[];
+  character: StoryCharacter;
   emotion: string;
   duration: number;
-  isPlaying: boolean;
+  audioUrl?: string;
+  videoUrl?: string;
 }
 
 const StorytellingPage: React.FC = () => {
@@ -29,15 +20,21 @@ const StorytellingPage: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState('');
   const [selectedEmotion, setSelectedEmotion] = useState('happy');
   const [selectedCharacter, setSelectedCharacter] = useState<StoryCharacter | null>(null);
+  const [availableCharacters, setAvailableCharacters] = useState<StoryCharacter[]>([]);
   const [currentStory, setCurrentStory] = useState<StorySession | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingVoice, setIsGeneratingVoice] = useState(false);
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [avatarEnabled, setAvatarEnabled] = useState(true);
+  const [error, setError] = useState('');
+  const [progress, setProgress] = useState(0);
   const navigate = useNavigate();
 
+  const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -47,42 +44,23 @@ const StorytellingPage: React.FC = () => {
       return;
     }
     setUser(currentUser);
+    loadCharacters();
   }, [navigate]);
 
-  const storyCharacters: StoryCharacter[] = [
-    {
-      id: 'mento',
-      name: 'Mento the Wise Owl',
-      personality: 'Wise, encouraging, patient',
-      avatar: '🦉',
-      voiceId: 'wise-mentor',
-      description: 'A gentle owl who loves helping students discover the magic in learning'
-    },
-    {
-      id: 'luna',
-      name: 'Luna the Curious Cat',
-      personality: 'Playful, curious, energetic',
-      avatar: '🐱',
-      voiceId: 'playful-friend',
-      description: 'An adventurous cat who turns every lesson into an exciting quest'
-    },
-    {
-      id: 'sage',
-      name: 'Sage the Calm Dragon',
-      personality: 'Calm, wise, protective',
-      avatar: '🐉',
-      voiceId: 'calm-guide',
-      description: 'A peaceful dragon who helps students find inner strength and confidence'
-    },
-    {
-      id: 'spark',
-      name: 'Spark the Energetic Fox',
-      personality: 'Energetic, motivating, fun',
-      avatar: '🦊',
-      voiceId: 'energetic-coach',
-      description: 'A lively fox who makes learning feel like the greatest adventure ever'
+  const loadCharacters = async () => {
+    try {
+      const result = await getStoryCharacters();
+      if (result.success && result.data) {
+        setAvailableCharacters(result.data.characters);
+        // Auto-select first character
+        if (result.data.characters.length > 0) {
+          setSelectedCharacter(result.data.characters[0]);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading characters:', error);
     }
-  ];
+  };
 
   const emotionThemes = {
     happy: { color: 'from-yellow-400 to-orange-400', theme: 'celebration and joy' },
@@ -94,113 +72,203 @@ const StorytellingPage: React.FC = () => {
   };
 
   const handleGenerateStory = async () => {
-    if (!selectedTopic || !selectedCharacter) return;
+    if (!selectedTopic || !selectedCharacter) {
+      setError('Please select a topic and character');
+      return;
+    }
 
     setIsGenerating(true);
+    setError('');
+    setProgress(0);
     
     try {
-      // TODO: Connect to Gemini API for story generation
-      const storyPrompt = `Create an engaging, educational story about "${selectedTopic}" featuring ${selectedCharacter.name} (${selectedCharacter.personality}). The story should have a ${emotionThemes[selectedEmotion as keyof typeof emotionThemes].theme} theme and be appropriate for students. Include learning elements and emotional support. Make it 3-5 minutes long when narrated.`;
+      // Step 1: Generate story content
+      setProgress(25);
+      const storyResult = await generateStory(
+        selectedTopic, 
+        selectedCharacter, 
+        selectedEmotion, 
+        240 // 4 minutes
+      );
       
-      // Simulate API call for demo
-      setTimeout(async () => {
-        const generatedStory: StorySession = {
-          id: Date.now().toString(),
-          title: `${selectedCharacter.name}'s Adventure: ${selectedTopic}`,
-          content: `Once upon a time, in the magical realm of learning, ${selectedCharacter.name} discovered something wonderful about ${selectedTopic}...\n\n[This would be the full generated story from Gemini API, tailored to the selected emotion and character personality. The story would include educational content, emotional support, and interactive elements.]`,
-          characters: [selectedCharacter],
-          emotion: selectedEmotion,
-          duration: 240, // 4 minutes
-          isPlaying: false
-        };
+      if (!storyResult.success || !storyResult.data) {
+        throw new Error(storyResult.error || 'Failed to generate story');
+      }
 
-        setCurrentStory(generatedStory);
-        
-        // Generate avatar video if enabled
-        if (avatarEnabled) {
-          await generateAvatarVideo(generatedStory);
+      const newStory: StorySession = {
+        id: Date.now().toString(),
+        title: storyResult.data.title,
+        content: storyResult.data.content,
+        character: selectedCharacter,
+        emotion: selectedEmotion,
+        duration: storyResult.data.duration
+      };
+
+      setCurrentStory(newStory);
+      setProgress(50);
+
+      // Step 2: Generate voice narration if enabled
+      if (voiceEnabled) {
+        setIsGeneratingVoice(true);
+        try {
+          const voiceResult = await generateVoiceNarration(
+            newStory.content,
+            selectedCharacter.voiceId,
+            selectedEmotion
+          );
+          
+          if (voiceResult.success && voiceResult.data) {
+            newStory.audioUrl = voiceResult.data.audioUrl;
+            setCurrentStory({ ...newStory });
+          }
+        } catch (voiceError) {
+          console.warn('Voice generation failed:', voiceError);
         }
-        
-        setIsGenerating(false);
-      }, 3000);
+        setIsGeneratingVoice(false);
+        setProgress(75);
+      }
+
+      // Step 3: Generate avatar video if enabled
+      if (avatarEnabled) {
+        setIsGeneratingVideo(true);
+        try {
+          const videoResult = await generateAvatarVideo(
+            newStory.content,
+            selectedCharacter,
+            selectedEmotion
+          );
+          
+          if (videoResult.success && videoResult.data) {
+            newStory.videoUrl = videoResult.data.videoUrl;
+            setCurrentStory({ ...newStory });
+          }
+        } catch (videoError) {
+          console.warn('Video generation failed:', videoError);
+        }
+        setIsGeneratingVideo(false);
+      }
+
+      setProgress(100);
       
     } catch (error) {
       console.error('Error generating story:', error);
+      setError(error instanceof Error ? error.message : 'Failed to generate story');
+    } finally {
       setIsGenerating(false);
+      setIsGeneratingVoice(false);
+      setIsGeneratingVideo(false);
     }
   };
 
-  const generateAvatarVideo = async (story: StorySession) => {
-    try {
-      // TODO: Connect to Tavus API
-      const tavusResponse = await fetch('/api/generate-avatar-video', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          script: story.content,
-          character: story.characters[0],
-          emotion: story.emotion
-        })
-      });
-      
-      // For demo, we'll simulate video generation
-      console.log('Avatar video would be generated here with Tavus API');
-    } catch (error) {
-      console.error('Error generating avatar video:', error);
-    }
-  };
-
-  const handlePlayStory = async () => {
+  const handlePlayStory = () => {
     if (!currentStory) return;
 
-    setIsPlaying(true);
-    setIsPaused(false);
-
-    if (voiceEnabled) {
-      // TODO: Connect to ElevenLabs API for voice synthesis
-      try {
-        const voiceResponse = await fetch('/api/text-to-speech', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text: currentStory.content,
-            voice_id: currentStory.characters[0].voiceId,
-            emotion: currentStory.emotion
-          })
-        });
-        
-        // For demo, we'll simulate voice playback
-        console.log('Story would be narrated with ElevenLabs voice synthesis');
-      } catch (error) {
-        console.error('Error generating speech:', error);
-      }
+    if (currentStory.audioUrl && audioRef.current) {
+      audioRef.current.play();
+      setIsPlaying(true);
+      setIsPaused(false);
+    } else if (currentStory.videoUrl && videoRef.current) {
+      videoRef.current.play();
+      setIsPlaying(true);
+      setIsPaused(false);
+    } else {
+      // Fallback: use browser speech synthesis
+      const utterance = new SpeechSynthesisUtterance(currentStory.content);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.onstart = () => {
+        setIsPlaying(true);
+        setIsPaused(false);
+      };
+      utterance.onend = () => {
+        setIsPlaying(false);
+        setIsPaused(false);
+      };
+      speechSynthesis.speak(utterance);
     }
-
-    // Simulate story playback
-    setTimeout(() => {
-      setIsPlaying(false);
-    }, currentStory.duration * 1000);
   };
 
   const handlePauseStory = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+    speechSynthesis.pause();
     setIsPaused(true);
     setIsPlaying(false);
   };
 
   const handleResumeStory = () => {
+    if (audioRef.current && currentStory?.audioUrl) {
+      audioRef.current.play();
+    } else if (videoRef.current && currentStory?.videoUrl) {
+      videoRef.current.play();
+    } else {
+      speechSynthesis.resume();
+    }
     setIsPaused(false);
     setIsPlaying(true);
   };
 
   const handleStopStory = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+    speechSynthesis.cancel();
     setIsPlaying(false);
     setIsPaused(false);
+  };
+
+  const handleDownload = () => {
+    if (!currentStory) return;
+    
+    const content = `${currentStory.title}\n\nNarrated by ${currentStory.character.name}\nEmotion: ${currentStory.emotion}\n\n${currentStory.content}`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentStory.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleShare = async () => {
+    if (!currentStory) return;
+    
+    const shareText = `Check out this amazing story created by Mentora AI: "${currentStory.title}" - narrated by ${currentStory.character.name}!`;
+    
+    if (navigator.share) {
+      await navigator.share({
+        title: currentStory.title,
+        text: shareText,
+        url: window.location.href
+      });
+    } else {
+      await navigator.clipboard.writeText(shareText);
+    }
   };
 
   const getUserDisplayName = () => {
     if (user?.displayName) return user.displayName;
     if (user?.email) return user.email.split('@')[0];
     return 'Friend';
+  };
+
+  const getProgressMessage = () => {
+    if (progress < 25) return 'Initializing story generation...';
+    if (progress < 50) return 'Creating your magical story...';
+    if (progress < 75) return 'Adding voice narration...';
+    if (progress < 100) return 'Generating avatar video...';
+    return 'Story ready!';
   };
 
   return (
@@ -239,7 +307,7 @@ const StorytellingPage: React.FC = () => {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className="p-3 rounded-xl backdrop-blur-xl bg-white/10 border border-white/20 text-neutral-700 hover:text-neutral-800 hover:bg-white/20 transition-all duration-300"
+                className="p-3 rounded-xl backdrop-blur-xl bg-white/20 border border-white/30 text-neutral-700 hover:text-neutral-800 hover:bg-white/30 transition-all duration-300"
               >
                 <Settings className="w-5 h-5" />
               </button>
@@ -254,7 +322,7 @@ const StorytellingPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-neutral-800">Voice Narration</p>
-                    <p className="text-sm text-neutral-600">Enable AI voice storytelling</p>
+                    <p className="text-sm text-neutral-600">Enable ElevenLabs AI voice storytelling</p>
                   </div>
                   <button
                     onClick={() => setVoiceEnabled(!voiceEnabled)}
@@ -271,7 +339,7 @@ const StorytellingPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-neutral-800">Avatar Videos</p>
-                    <p className="text-sm text-neutral-600">Show character animations</p>
+                    <p className="text-sm text-neutral-600">Show Tavus character animations</p>
                   </div>
                   <button
                     onClick={() => setAvatarEnabled(!avatarEnabled)}
@@ -297,7 +365,7 @@ const StorytellingPage: React.FC = () => {
               <div className="space-y-8">
                 {/* Welcome Section */}
                 <div className="text-center mb-12">
-                  <div className="relative mb-6">
+                  <div className="relative mb-8">
                     <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto glow-primary animate-float">
                       <Sparkles className="w-12 h-12 text-white" />
                     </div>
@@ -322,7 +390,7 @@ const StorytellingPage: React.FC = () => {
                     value={selectedTopic}
                     onChange={(e) => setSelectedTopic(e.target.value)}
                     placeholder="Enter any topic... (e.g., 'The water cycle', 'Ancient Egypt', 'Photosynthesis', 'Shakespeare')"
-                    className="w-full px-6 py-4 rounded-2xl border-0 bg-white/20 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300 resize-none"
+                    className="w-full px-6 py-4 rounded-2xl border-2 border-purple-200 bg-white/30 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/40 focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all duration-300 resize-none"
                     rows={3}
                   />
                 </div>
@@ -331,14 +399,14 @@ const StorytellingPage: React.FC = () => {
                 <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
                   <h3 className="text-xl font-serif font-bold text-neutral-800 mb-6">Choose your story companion</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {storyCharacters.map((character) => (
+                    {availableCharacters.map((character) => (
                       <div
                         key={character.id}
                         onClick={() => setSelectedCharacter(character)}
                         className={`p-6 rounded-2xl cursor-pointer transition-all duration-300 transform hover:scale-105 ${
                           selectedCharacter?.id === character.id
                             ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50 shadow-lg'
-                            : 'bg-white/30 border border-white/40 hover:bg-white/40 hover:border-white/50'
+                            : 'bg-white/20 border border-white/30 hover:bg-white/30'
                         }`}
                       >
                         <div className="text-center">
@@ -353,7 +421,7 @@ const StorytellingPage: React.FC = () => {
                 </div>
 
                 {/* Emotion/Theme Selection */}
-                <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
+                <div className="backdrop-blur-xl bg-white/20 border border-white/30 rounded-2xl p-8 shadow-xl">
                   <h3 className="text-xl font-serif font-bold text-neutral-800 mb-6">What's your current mood?</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     {Object.entries(emotionThemes).map(([emotion, theme]) => (
@@ -382,6 +450,14 @@ const StorytellingPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Error Message */}
+                {error && (
+                  <div className="p-4 bg-red-100/80 backdrop-blur-sm border border-red-200/50 rounded-xl flex items-center gap-3">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                )}
+
                 {/* Generate Button */}
                 <div className="text-center">
                   <button
@@ -391,7 +467,7 @@ const StorytellingPage: React.FC = () => {
                   >
                     {isGenerating ? (
                       <>
-                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <Loader2 className="w-6 h-6 animate-spin" />
                         <span>Creating your magical story...</span>
                       </>
                     ) : (
@@ -401,6 +477,22 @@ const StorytellingPage: React.FC = () => {
                       </>
                     )}
                   </button>
+
+                  {/* Progress Bar */}
+                  {isGenerating && (
+                    <div className="mt-6 max-w-md mx-auto">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-neutral-600">{getProgressMessage()}</span>
+                        <span className="text-sm text-neutral-600">{progress}%</span>
+                      </div>
+                      <div className="w-full bg-white/20 rounded-full h-2">
+                        <div 
+                          className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -410,16 +502,42 @@ const StorytellingPage: React.FC = () => {
                 <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
-                      <div className="text-6xl">{currentStory.characters[0].avatar}</div>
+                      <div className="text-6xl">{currentStory.character.avatar}</div>
                       <div>
                         <h2 className="text-2xl font-serif font-bold text-neutral-800">{currentStory.title}</h2>
-                        <p className="text-neutral-600">Narrated by {currentStory.characters[0].name}</p>
+                        <p className="text-neutral-600">Narrated by {currentStory.character.name}</p>
+                        <div className="flex items-center gap-4 mt-2">
+                          {currentStory.audioUrl && (
+                            <div className="flex items-center gap-1 text-green-600">
+                              <CheckCircle className="w-4 h-4" />
+                              <span className="text-sm">Voice Ready</span>
+                            </div>
+                          )}
+                          {currentStory.videoUrl && (
+                            <div className="flex items-center gap-1 text-blue-600">
+                              <CheckCircle className="w-4 h-4" />
+                              <span className="text-sm">Video Ready</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <button
+                        onClick={handleDownload}
+                        className="p-3 bg-white/50 rounded-xl text-neutral-700 hover:bg-white/100 transition-colors"
+                      >
+                        <Download className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={handleShare}
+                        className="p-3 bg-white/50 rounded-xl text-neutral-700 hover:bg-white/100 transition-colors"
+                      >
+                        <Share2 className="w-5 h-5" />
+                      </button>
+                      <button
                         onClick={() => setCurrentStory(null)}
-                        className="p-3 bg-white/20 rounded-xl text-neutral-700 hover:bg-white/30 transition-colors"
+                        className="p-3 bg-white/50 rounded-xl text-neutral-700 hover:bg-white/100 transition-colors"
                       >
                         <RotateCcw className="w-5 h-5" />
                       </button>
@@ -427,21 +545,50 @@ const StorytellingPage: React.FC = () => {
                   </div>
 
                   {/* Avatar Video Player */}
-                  {avatarEnabled && (
+                  {currentStory.videoUrl && (
                     <div className="mb-6">
-                      <div className="aspect-video bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center">
-                        <video
-                          ref={videoRef}
-                          className="w-full h-full rounded-2xl"
-                          poster="/api/placeholder/800/450"
-                        >
-                          {/* Tavus-generated video would be loaded here */}
-                        </video>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-8xl opacity-50">{currentStory.characters[0].avatar}</div>
-                        </div>
-                      </div>
+                      <video
+                        ref={videoRef}
+                        className="w-full aspect-video rounded-2xl shadow-lg"
+                        controls
+                        onPlay={() => {
+                          setIsPlaying(true);
+                          setIsPaused(false);
+                        }}
+                        onPause={() => {
+                          setIsPlaying(false);
+                          setIsPaused(true);
+                        }}
+                        onEnded={() => {
+                          setIsPlaying(false);
+                          setIsPaused(false);
+                        }}
+                      >
+                        <source src={currentStory.videoUrl} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
                     </div>
+                  )}
+
+                  {/* Audio Player */}
+                  {currentStory.audioUrl && (
+                    <audio
+                      ref={audioRef}
+                      onPlay={() => {
+                        setIsPlaying(true);
+                        setIsPaused(false);
+                      }}
+                      onPause={() => {
+                        setIsPlaying(false);
+                        setIsPaused(true);
+                      }}
+                      onEnded={() => {
+                        setIsPlaying(false);
+                        setIsPaused(false);
+                      }}
+                    >
+                      <source src={currentStory.audioUrl} type="audio/mpeg" />
+                    </audio>
                   )}
 
                   {/* Playback Controls */}
@@ -470,6 +617,13 @@ const StorytellingPage: React.FC = () => {
                     )}
                     
                     <button
+                      onClick={handleStopStory}
+                      className="bg-gradient-to-r from-red-500 to-pink-500 text-white p-4 rounded-2xl hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                    >
+                      <Square className="w-8 h-8" />
+                    </button>
+                    
+                    <button
                       onClick={() => setVoiceEnabled(!voiceEnabled)}
                       className={`p-4 rounded-2xl transition-all duration-300 ${
                         voiceEnabled 
@@ -480,36 +634,11 @@ const StorytellingPage: React.FC = () => {
                       {voiceEnabled ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
                     </button>
                   </div>
-
-                  {/* Story Progress */}
-                  {isPlaying && (
-                    <div className="mb-6">
-                      <div className="w-full bg-white/20 rounded-full h-2">
-                        <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full animate-pulse" style={{ width: '45%' }}></div>
-                      </div>
-                      <div className="flex justify-between text-sm text-neutral-600 mt-2">
-                        <span>1:48</span>
-                        <span>{Math.floor(currentStory.duration / 60)}:{(currentStory.duration % 60).toString().padStart(2, '0')}</span>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Story Content */}
                 <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl font-serif font-bold text-neutral-800">Story Transcript</h3>
-                    <div className="flex items-center gap-3">
-                      <button className="flex items-center gap-2 text-neutral-600 hover:text-neutral-800 transition-colors">
-                        <Download className="w-4 h-4" />
-                        <span className="text-sm">Download</span>
-                      </button>
-                      <button className="flex items-center gap-2 text-neutral-600 hover:text-neutral-800 transition-colors">
-                        <Share2 className="w-4 h-4" />
-                        <span className="text-sm">Share</span>
-                      </button>
-                    </div>
-                  </div>
+                  <h3 className="text-xl font-serif font-bold text-neutral-800 mb-6">Story Transcript</h3>
                   <div className="prose prose-lg max-w-none">
                     <p className="text-neutral-700 leading-relaxed whitespace-pre-wrap">{currentStory.content}</p>
                   </div>

@@ -1,6 +1,7 @@
 import requests
 import os
 import tempfile
+import base64
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,7 +12,13 @@ def text_to_speech(text, voice_id="21m00Tcm4TlvDq8ikWAM", emotion="neutral", spe
     Convert text to speech using ElevenLabs API with emotion and character support
     """
     if not ELEVENLABS_API_KEY:
+        print("❌ ElevenLabs API key not configured")
         return None, "ElevenLabs API key not configured"
+    
+    print(f"🎙️ Generating speech with ElevenLabs...")
+    print(f"   Voice ID: {voice_id}")
+    print(f"   Emotion: {emotion}")
+    print(f"   Text length: {len(text)} characters")
     
     # Character voice mapping
     character_voices = {
@@ -24,6 +31,7 @@ def text_to_speech(text, voice_id="21m00Tcm4TlvDq8ikWAM", emotion="neutral", spe
     
     # Use character voice if provided
     actual_voice_id = character_voices.get(voice_id, voice_id)
+    print(f"   Using voice ID: {actual_voice_id}")
     
     # Emotion-based voice settings
     emotion_settings = {
@@ -58,15 +66,27 @@ def text_to_speech(text, voice_id="21m00Tcm4TlvDq8ikWAM", emotion="neutral", spe
     }
     
     try:
-        response = requests.post(url, json=data, headers=headers)
+        print(f"🌐 Making request to ElevenLabs API...")
+        response = requests.post(url, json=data, headers=headers, timeout=30)
+        
+        print(f"📡 ElevenLabs Response Status: {response.status_code}")
         
         if response.status_code == 200:
+            print(f"✅ ElevenLabs Success: Generated {len(response.content)} bytes of audio")
             return response.content, None
         else:
-            return None, f"ElevenLabs API error: {response.status_code} - {response.text}"
+            error_msg = f"ElevenLabs API error: {response.status_code} - {response.text}"
+            print(f"❌ {error_msg}")
+            return None, error_msg
             
+    except requests.exceptions.Timeout:
+        error_msg = "ElevenLabs request timed out"
+        print(f"❌ {error_msg}")
+        return None, error_msg
     except Exception as e:
-        return None, f"ElevenLabs request failed: {str(e)}"
+        error_msg = f"ElevenLabs request failed: {str(e)}"
+        print(f"❌ {error_msg}")
+        return None, error_msg
 
 def get_available_voices():
     """Get list of available voices with character mapping"""

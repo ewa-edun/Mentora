@@ -53,44 +53,6 @@ export interface YouTubeErrorResponse {
   };
 }
 
-export interface StoryRequest {
-  topic: string;
-  character: {
-    id: string;
-    name: string;
-    personality: string;
-    voiceId: string;
-  };
-  emotion: string;
-  duration?: number;
-}
-
-export interface StoryResponse {
-  title: string;
-  content: string;
-  duration: number;
-  audioUrl?: string;
-  videoUrl?: string;
-}
-
-export interface AvatarVideoRequest {
-  script: string;
-  character: {
-    id: string;
-    name: string;
-    personality: string;
-  };
-  emotion: string;
-}
-
-export interface VoiceRequest {
-  text: string;
-  voiceId: string;
-  emotion: string;
-  speed?: number;
-  pitch?: number;
-}
-
 export interface EmotionResponse {
   emotion: string;
   confidence: number;
@@ -111,6 +73,31 @@ export interface EmotionResponse {
       bg: string;
     };
   };
+}
+
+export interface StoryResponse {
+  title: string;
+  content: string;
+  duration: number;
+}
+
+export interface VoiceResponse {
+  audioUrl: string;
+}
+
+export interface AvatarVideoResponse {
+  videoUrl: string;
+  duration: number;
+}
+
+export interface StoryCharacter {
+  id: string;
+  name: string;
+  personality: string;
+  avatar: string;
+  voiceId: string;
+  description: string;
+  tavusAvatarId: string;
 }
 
 // Text summarization
@@ -326,17 +313,25 @@ export const getBreakSuggestions = async (emotion: string): Promise<ApiResponse<
   }
 };
 
-// Storytelling API service
-
-// Generate story content using Gemini
-export const generateStory = async (request: StoryRequest): Promise<{ success: boolean; data?: StoryResponse; error?: string }> => {
+// Story generation
+export const generateStory = async (
+  topic: string, 
+  character: StoryCharacter, 
+  emotion: string, 
+  duration: number = 240
+): Promise<ApiResponse<StoryResponse>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/generate-story`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(request),
+      body: JSON.stringify({ 
+        topic, 
+        character, 
+        emotion, 
+        duration 
+      }),
     });
 
     if (!response.ok) {
@@ -354,15 +349,61 @@ export const generateStory = async (request: StoryRequest): Promise<{ success: b
   }
 };
 
-// Generate avatar video using Tavus
-export const generateAvatarVideo = async (request: AvatarVideoRequest): Promise<{ success: boolean; data?: { videoUrl: string }; error?: string }> => {
+// Generate voice narration
+export const generateVoiceNarration = async (
+  text: string,
+  voiceId: string,
+  emotion: string = 'neutral',
+  speed: number = 1.0,
+  pitch: number = 1.0
+): Promise<ApiResponse<VoiceResponse>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/generate-voice`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        text, 
+        voiceId, 
+        emotion, 
+        speed, 
+        pitch 
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error generating voice:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to generate voice narration' 
+    };
+  }
+};
+
+// Generate avatar video
+export const generateAvatarVideo = async (
+  script: string,
+  character: StoryCharacter,
+  emotion: string = 'neutral'
+): Promise<ApiResponse<AvatarVideoResponse>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/generate-avatar-video`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(request),
+      body: JSON.stringify({ 
+        script, 
+        character, 
+        emotion 
+      }),
     });
 
     if (!response.ok) {
@@ -380,15 +421,11 @@ export const generateAvatarVideo = async (request: AvatarVideoRequest): Promise<
   }
 };
 
-// Generate voice narration using ElevenLabs
-export const generateVoiceNarration = async (request: VoiceRequest): Promise<{ success: boolean; data?: { audioUrl: string }; error?: string }> => {
+// Get story characters
+export const getStoryCharacters = async (): Promise<ApiResponse<{ characters: StoryCharacter[] }>> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/generate-voice`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
+    const response = await fetch(`${API_BASE_URL}/api/characters`, {
+      method: 'GET',
     });
 
     if (!response.ok) {
@@ -398,10 +435,10 @@ export const generateVoiceNarration = async (request: VoiceRequest): Promise<{ s
     const data = await response.json();
     return { success: true, data };
   } catch (error) {
-    console.error('Error generating voice narration:', error);
+    console.error('Error getting characters:', error);
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'Failed to generate voice narration' 
+      error: error instanceof Error ? error.message : 'Failed to get story characters' 
     };
   }
 };

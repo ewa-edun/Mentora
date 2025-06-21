@@ -12,7 +12,13 @@ def generate_avatar_video(script, character, emotion):
     Generate avatar video using Tavus API
     """
     if not TAVUS_API_KEY:
+        print("❌ Tavus API key not configured")
         return {"error": "Tavus API key not configured"}
+    
+    print(f"🎬 Generating avatar video with Tavus...")
+    print(f"   Character: {character.get('name', 'Unknown')}")
+    print(f"   Emotion: {emotion}")
+    print(f"   Script length: {len(script)} characters")
     
     try:
         # Map character to Tavus avatar ID
@@ -24,6 +30,7 @@ def generate_avatar_video(script, character, emotion):
         }
         
         avatar_id = character_avatar_mapping.get(character.get('id'), 'default-avatar-id')
+        print(f"   Using avatar ID: {avatar_id}")
         
         # Emotion-based video settings
         emotion_settings = {
@@ -55,14 +62,19 @@ def generate_avatar_video(script, character, emotion):
             }
         }
         
+        print(f"🌐 Making request to Tavus API...")
         response = requests.post(
             f"{TAVUS_BASE_URL}/videos",
             headers=headers,
-            json=payload
+            json=payload,
+            timeout=30
         )
+        
+        print(f"📡 Tavus Response Status: {response.status_code}")
         
         if response.status_code == 200:
             result = response.json()
+            print(f"✅ Tavus Success: Video generation started")
             return {
                 "video_url": result.get("video_url"),
                 "video_id": result.get("video_id"),
@@ -70,10 +82,18 @@ def generate_avatar_video(script, character, emotion):
                 "status": result.get("status", "processing")
             }
         else:
-            return {"error": f"Tavus API error: {response.status_code} - {response.text}"}
+            error_msg = f"Tavus API error: {response.status_code} - {response.text}"
+            print(f"❌ {error_msg}")
+            return {"error": error_msg}
             
+    except requests.exceptions.Timeout:
+        error_msg = "Tavus request timed out"
+        print(f"❌ {error_msg}")
+        return {"error": error_msg}
     except Exception as e:
-        return {"error": f"Tavus request failed: {str(e)}"}
+        error_msg = f"Tavus request failed: {str(e)}"
+        print(f"❌ {error_msg}")
+        return {"error": error_msg}
 
 def get_video_status(video_id):
     """
