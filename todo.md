@@ -105,3 +105,13 @@ Provide the email used to build the project on Bolt.new. This email must be asso
 3. Fix the elevenlabs and tavus issue
 4. I still havent integerated everything else with firebase firestore, will do that later. 
 5. Integerate with supabase storage for media storage. 
+6. Integerate with RevenueCat for subscription. 
+7. Integerate Adaptive Recommendations: AI learns your preferences and suggests optimal study strategies.
+8. Get whisper API key.
+9. Web Speech API for browser-based voice recognition
+10. Custom Emotion Analysis using NLP keyword matching and sentiment analysis
+     - Developed custom NLP algorithms that accurately detect emotions from voice/text input
+     - Built personalized activity recommendation engine with 6+ emotion categories
+     - Created dynamic UI that adapts colors, messaging, and suggestions based on emotional state
+11. Deploy and get Custom Domain via Entri integration.
+12. Finish Demo Video.
