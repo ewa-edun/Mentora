@@ -103,10 +103,8 @@ Provide the email used to build the project on Bolt.new. This email must be asso
 1. PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
 2. Add two files as backup demo data: /demo/avatar-video.mp4 and /demo/voice-narration.mp3
 3. Fix the elevenlabs and tavus issue
-4. I still havent integerated everything else with firebase firestore, will do that later.
-Text summarizer done,
-  - StudySessions is in the firebase ts rn
-  So link that to the study and break modes, then call it in the profile page as well.
+4. I still havent integerated firebase firestore with
+  - then call it in the profile page and student dashboard as well.
   - Need VoiceChats for voicepage
   - Need StorySession as well for story mode.
 

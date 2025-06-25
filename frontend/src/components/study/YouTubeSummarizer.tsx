@@ -1,6 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Youtube, Link, Loader2, Play, Copy, CheckCircle, Download, AlertTriangle, Lightbulb, ExternalLink } from 'lucide-react';
 import { summarizeYouTube } from '../../services/api';
+import { 
+  getCurrentUser, 
+  createStudySession, 
+  updateStudySession, 
+  endStudySession,
+  updateLearningProgress 
+} from '../../services/firebase';
 
 const YouTubeSummarizer: React.FC = () => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -10,6 +17,13 @@ const YouTubeSummarizer: React.FC = () => {
   const [error, setError] = useState('');
   const [errorDetails, setErrorDetails] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
 
   const handleSubmit = async () => {
     if (!youtubeUrl.trim()) {
@@ -29,26 +43,89 @@ const YouTubeSummarizer: React.FC = () => {
       });
       return;
     }
+
+    if (!user) {
+      setError('Please sign in to use this feature');
+      return;
+    }
     
     setIsProcessing(true);
     setError('');
     setErrorDetails(null);
     setSummary('');
     setVideoInfo(null);
-    
-    const result = await summarizeYouTube(youtubeUrl);
-    
-    if (result.success && result.data && 'summary' in result.data && 'video_info' in result.data) {
-      setSummary(result.data.summary);
-      setVideoInfo(result.data.video_info);
-    } else {
-      setError(result.error || 'Failed to process YouTube video');
-      if (result.data) {
-        setErrorDetails(result.data);
+
+    try {
+      // Create study session
+      const sessionId = await createStudySession({
+        userId: user.uid,
+        mode: 'study',
+        type: 'youtube',
+        startTime: new Date(),
+        content: {
+          input: youtubeUrl
+        },
+        metadata: {
+          topic: 'YouTube Video Analysis'
+        }
+      });
+      setCurrentSessionId(sessionId);
+
+      // Process YouTube video
+      const result = await summarizeYouTube(youtubeUrl);
+      
+      if (
+        result.success &&
+        result.data &&
+        typeof result.data === 'object' &&
+        'summary' in result.data &&
+        'video_info' in result.data
+      ) {
+        setSummary(result.data.summary);
+        setVideoInfo(result.data.video_info);
+        
+        // Update session with results
+        await updateStudySession(sessionId, {
+          content: {
+            input: youtubeUrl,
+            summary: result.data.summary
+          },
+          metadata: {
+            topic: result.data.video_info?.title || 'YouTube Video',
+          }
+        });
+
+        // Update learning progress
+        await updateLearningProgress({
+          userId: user.uid,
+          topic: 'Video Learning',
+          difficulty: 'intermediate',
+          progress: 100,
+          timeSpent: 0,
+          quizScores: [],
+          mastered: false
+        });
+
+      } else {
+        setError(result.error || 'Failed to process YouTube video');
+        if (result.data) {
+          setErrorDetails(result.data);
+        }
+        
+        // Update session with error
+        await updateStudySession(sessionId, {
+          content: {
+            input: youtubeUrl,
+            summary: `Error: ${result.error || 'Failed to process video'}`
+          }
+        });
       }
+    } catch (error) {
+      console.error('Error in YouTube processing:', error);
+      setError('An unexpected error occurred');
+    } finally {
+      setIsProcessing(false);
     }
-    
-    setIsProcessing(false);
   };
 
   const isValidYouTubeUrl = (url: string) => {
@@ -79,9 +156,28 @@ const YouTubeSummarizer: React.FC = () => {
     }
   };
 
+  const handleReset = async () => {
+    // End current session if exists
+    if (currentSessionId && user) {
+      try {
+        await endStudySession(currentSessionId, user.uid);
+      } catch (error) {
+        console.error('Error ending session:', error);
+      }
+    }
+
+    setYoutubeUrl('');
+    setSummary('');
+    setVideoInfo(null);
+    setError('');
+    setErrorDetails(null);
+    setCopied(false);
+    setCurrentSessionId(null);
+  };
+
   const handleTryExample = () => {
     // Set an example educational video URL
-    setYoutubeUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ'); // Replace with our demo video
+    setYoutubeUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ'); // Replace with actual educational video
     setError('');
     setErrorDetails(null);
   };
@@ -95,9 +191,9 @@ const YouTubeSummarizer: React.FC = () => {
 
   const getErrorColor = () => {
     if (errorDetails?.video_info?.content_type === 'music') {
-      return 'from-lavender-300 to-cyan-500';
+      return 'from-purple-500 to-pink-500';
     }
-    return 'from-red-300 to-rose-500';
+    return 'from-orange-500 to-red-500';
   };
 
   return (
@@ -130,7 +226,7 @@ const YouTubeSummarizer: React.FC = () => {
         {/* Submit Button */}
         <button
           onClick={handleSubmit}
-          disabled={!youtubeUrl.trim() || isProcessing}
+          disabled={!youtubeUrl.trim() || isProcessing || !user}
           className="w-full flex items-center justify-center space-x-3 bg-gradient-to-r from-red-500 to-red-600 text-white py-4 px-6 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-105 transition-all duration-300 shadow-lg"
         >
           {isProcessing ? (
@@ -191,20 +287,6 @@ const YouTubeSummarizer: React.FC = () => {
                   </div>
                 )}
 
-                {errorDetails?.help && (
-                  <div className="p-3 bg-blue-100/60 rounded-xl border border-blue-200/50">
-                    <h5 className="font-medium text-blue-700 mb-2">{errorDetails.help.title}</h5>
-                    <ul className="text-sm text-blue-600 space-y-1">
-                      {errorDetails.help.tips.map((tip: string, index: number) => (
-                        <li key={index} className="flex items-start gap-2">
-                          <span className="text-blue-400 mt-1">•</span>
-                          <span>{tip}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
                 <div className="flex gap-3 mt-4">
                   <button
                     onClick={handleTryExample}
@@ -214,11 +296,7 @@ const YouTubeSummarizer: React.FC = () => {
                     Try Example Video
                   </button>
                   <button
-                    onClick={() => {
-                      setError('');
-                      setErrorDetails(null);
-                      setYoutubeUrl('');
-                    }}
+                    onClick={handleReset}
                     className="flex items-center gap-2 text-sm bg-neutral-200/80 text-neutral-700 px-3 py-2 rounded-lg hover:bg-neutral-300/80 transition-colors"
                   >
                     Clear & Retry
@@ -279,9 +357,24 @@ const YouTubeSummarizer: React.FC = () => {
                     <Download className="w-4 h-4" />
                     <span>Download</span>
                   </button>
+                  <button
+                    onClick={handleReset}
+                    className="flex items-center gap-1 text-red-600 hover:text-red-700 transition-colors text-sm"
+                  >
+                    <Youtube className="w-4 h-4" />
+                    <span>New Video</span>
+                  </button>
                 </div>
               </div>
               <p className="text-neutral-700 leading-relaxed">{summary}</p>
+              
+              {user && currentSessionId && (
+                <div className="mt-4 p-3 bg-green-100/60 backdrop-blur-sm rounded-xl border border-green-200/50">
+                  <p className="text-sm text-green-700">
+                    ✅ Your YouTube analysis session is being tracked for learning insights.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -294,6 +387,7 @@ const YouTubeSummarizer: React.FC = () => {
             <li>• Supports both youtube.com and youtu.be links</li>
             <li>• Videos need captions or subtitles to work</li>
             <li>• Music videos and entertainment content may not have transcripts</li>
+            {!user && <li>• <strong>Sign in to track your video learning progress</strong></li>}
           </ul>
         </div>
       </div>

@@ -71,6 +71,7 @@ export interface StudySession {
   duration?: number; // in seconds
   content?: {
     input?: string;
+    output?: string;
     summary?: string;
     quiz?: string;
     score?: number;

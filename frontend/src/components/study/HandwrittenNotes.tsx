@@ -1,6 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Camera, Image, Loader2, Eye, Copy, CheckCircle, Sparkles } from 'lucide-react';
 import { extractTextFromImage, summarizeText } from '../../services/api';
+import { 
+  getCurrentUser, 
+  createStudySession, 
+  updateStudySession, 
+  endStudySession,
+  updateLearningProgress 
+} from '../../services/firebase';
 
 const HandwrittenNotes: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -11,6 +18,13 @@ const HandwrittenNotes: React.FC = () => {
   const [summary, setSummary] = useState('');
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -33,42 +47,143 @@ const HandwrittenNotes: React.FC = () => {
 
   const handleExtractText = async () => {
     if (!selectedImage) return;
+
+    if (!user) {
+      setError('Please sign in to use this feature');
+      return;
+    }
     
     setIsProcessing(true);
     setError('');
 
-    const result = await extractTextFromImage(selectedImage);
-    
-    if (result.success && result.data) {
-      setExtractedText(result.data.extracted_text);
-    } else {
-      setError(result.error || 'Failed to extract text from image');
+    try {
+      // Create study session
+      const sessionId = await createStudySession({
+        userId: user.uid,
+        mode: 'study',
+        type: 'ocr',
+        startTime: new Date(),
+        content: {
+          input: `Image File: ${selectedImage.name}`
+        },
+        metadata: {
+          fileName: selectedImage.name,
+          fileType: 'Image',
+          topic: 'Handwritten Notes'
+        }
+      });
+      setCurrentSessionId(sessionId);
+
+      // Extract text from image
+      const result = await extractTextFromImage(selectedImage);
+      
+      if (result.success && result.data) {
+        setExtractedText(result.data.extracted_text);
+        
+        // Update session with extracted text
+        await updateStudySession(sessionId, {
+          content: {
+            input: `Image File: ${selectedImage.name}`,
+            output: result.data.extracted_text
+          }
+        });
+
+        // Update learning progress
+        await updateLearningProgress({
+          userId: user.uid,
+          topic: 'OCR & Note Processing',
+          difficulty: 'beginner',
+          progress: 50, // 50% for extraction, 100% when summarized
+          timeSpent: 0,
+          quizScores: [],
+          mastered: false
+        });
+
+      } else {
+        setError(result.error || 'Failed to extract text from image');
+        // Update session with error
+        await updateStudySession(sessionId, {
+          content: {
+            input: `Image File: ${selectedImage.name}`,
+            output: `Error: ${result.error || 'Failed to extract text'}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error in OCR processing:', error);
+      setError('An unexpected error occurred');
+    } finally {
+      setIsProcessing(false);
     }
-    
-    setIsProcessing(false);
   };
 
   const handleSummarize = async () => {
-    if (!extractedText) return;
+    if (!extractedText || !currentSessionId || !user) return;
     
     setIsSummarizing(true);
     setError('');
 
-    const result = await summarizeText(extractedText);
-    
-    if (result.success && result.data) {
-      setSummary(result.data.Summary);
-    } else {
-      setError(result.error || 'Failed to summarize text');
+    try {
+      // Get summary from API
+      const result = await summarizeText(extractedText);
+      
+      if (result.success && result.data) {
+        setSummary(result.data.Summary);
+        
+        // Update session with summary
+        await updateStudySession(currentSessionId, {
+          content: {
+            input: `Image File: ${selectedImage?.name}`,
+            output: extractedText,
+            summary: result.data.Summary
+          }
+        });
+
+        // Update learning progress to 100%
+        await updateLearningProgress({
+          userId: user.uid,
+          topic: 'OCR & Note Processing',
+          difficulty: 'intermediate',
+          progress: 100,
+          timeSpent: 0,
+          quizScores: [],
+          mastered: false
+        });
+
+      } else {
+        setError(result.error || 'Failed to summarize text');
+      }
+    } catch (error) {
+      console.error('Error in summarization:', error);
+      setError('An unexpected error occurred during summarization');
+    } finally {
+      setIsSummarizing(false);
     }
-    
-    setIsSummarizing(false);
   };
 
   const handleCopy = async (text: string) => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleReset = async () => {
+    // End current session if exists
+    if (currentSessionId && user) {
+      try {
+        await endStudySession(currentSessionId, user.uid);
+      } catch (error) {
+        console.error('Error ending session:', error);
+      }
+    }
+
+    setSelectedImage(null);
+    setPreview(null);
+    setExtractedText('');
+    setSummary('');
+    setError('');
+    setCopied(false);
+    setCurrentSessionId(null);
   };
 
   return (
@@ -93,7 +208,7 @@ const HandwrittenNotes: React.FC = () => {
           />
           <label
             htmlFor="image-upload"
-            className="block w-full p-6 border-2 border-dashed border-gray-300 rounded-2xl hover:border-green-400 hover:bg-white/20 transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-sm"
+            className="block w-full p-6 border-2 border-dashed border-white/30 rounded-2xl hover:border-green-400 hover:bg-white/20 transition-all duration-300 cursor-pointer bg-white/10 backdrop-blur-sm"
           >
             {preview ? (
               <div className="text-center">
@@ -128,7 +243,7 @@ const HandwrittenNotes: React.FC = () => {
         {/* Extract Text Button */}
         <button
           onClick={handleExtractText}
-          disabled={!selectedImage || isProcessing}
+          disabled={!selectedImage || isProcessing || !user}
           className="w-full flex items-center justify-center space-x-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white py-4 px-6 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-105 transition-all duration-300 shadow-lg"
         >
           {isProcessing ? (
@@ -186,9 +301,24 @@ const HandwrittenNotes: React.FC = () => {
                     </>
                   )}
                 </button>
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-1 text-green-600 hover:text-green-700 transition-colors text-sm"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span>New Image</span>
+                </button>
               </div>
             </div>
             <pre className="text-neutral-700 leading-relaxed whitespace-pre-wrap font-sans text-sm">{extractedText}</pre>
+            
+            {user && currentSessionId && (
+              <div className="mt-4 p-3 bg-blue-100/60 backdrop-blur-sm rounded-xl border border-blue-200/50">
+                <p className="text-sm text-blue-700">
+                  ✅ Your OCR session is being tracked for learning analytics.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -211,6 +341,18 @@ const HandwrittenNotes: React.FC = () => {
             <p className="text-neutral-700 leading-relaxed">{summary}</p>
           </div>
         )}
+
+        {/* Tips */}
+        <div className="p-4 bg-green-100/60 backdrop-blur-sm rounded-xl border border-green-200/50">
+          <h5 className="text-sm font-medium text-green-700 mb-2">📝 OCR tips:</h5>
+          <ul className="text-xs text-green-600 space-y-1">
+            <li>• Use clear, well-lit photos for best results</li>
+            <li>• Ensure text is straight and not at an angle</li>
+            <li>• Works best with printed text, but can handle neat handwriting</li>
+            <li>• Higher resolution images produce better accuracy</li>
+            {!user && <li>• <strong>Sign in to track your note processing progress</strong></li>}
+          </ul>
+        </div>
       </div>
     </div>
   );
