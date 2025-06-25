@@ -101,6 +101,33 @@ export interface StoryCharacter {
   tavusAvatarId: string;
 }
 
+export interface ChartDataResponse {
+  chartType: string;
+  timeRange: string;
+  data: {
+    labels: string[];
+    datasets: Array<{
+      label: string;
+      data: number[];
+      borderColor: string;
+      backgroundColor: string;
+      fill?: boolean;
+      tension?: number;
+      yAxisID?: string;
+    }>;
+  };
+}
+
+export interface InsightResponse {
+  insights: Array<{
+    type: 'achievement' | 'progress' | 'wellness' | 'strength' | 'habit' | 'recommendation' | 'encouragement';
+    title: string;
+    message: string;
+    action: string;
+    priority: 'high' | 'medium' | 'low';
+  }>;
+}
+
 // Text summarization
 export const summarizeText = async (text: string): Promise<ApiResponse<SummaryResponse>> => {
   try {
@@ -440,6 +467,72 @@ export const getStoryCharacters = async (): Promise<ApiResponse<{ characters: St
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Failed to get story characters' 
+    };
+  }
+};
+
+// Get chart data for analytics
+export const getChartData = async (
+  userId: string,
+  chartType: string,
+  timeRange: string
+): Promise<ApiResponse<ChartDataResponse>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/analytics/charts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        userId,
+        chartType,
+        timeRange
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error getting chart data:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to get chart data' 
+    };
+  }
+};
+
+// Get AI insights for user
+export const getUserInsights = async (
+  userId: string,
+  analyticsData: any
+): Promise<ApiResponse<InsightResponse>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/analytics/insights`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        userId,
+        analyticsData
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error getting user insights:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to get insights' 
     };
   }
 };

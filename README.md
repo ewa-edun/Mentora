@@ -233,6 +233,8 @@ npm install
 npm install firebase react-router-dom
 npm install -D tailwindcss postcss autoprefixer
 npx tailwindcss init
+npm install chart.js
+npm install --save-dev @types/chart.js
 ```
 
 #### 4. **Set up Firebase (Authentication & Database):**

@@ -105,8 +105,12 @@ Provide the email used to build the project on Bolt.new. This email must be asso
 3. Fix the elevenlabs and tavus issue
 4. I still havent integerated firebase firestore with
   - then call it in the profile page and student dashboard as well.
+  i want to add firebase firestore to the voice chat page, to save the chats and reference the last 5 chats of the user. 
   - Need VoiceChats for voicepage
   - Need StorySession as well for story mode.
+
+For the navbar mobile view, copy the navbar for home just let the break/study button show then the dropdown should have view profile, dashboard, upgrade, and sign out.
+
 
 5. Integerate with supabase storage for media storage. 
 6. Integerate with RevenueCat for subscription. 
