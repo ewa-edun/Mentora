@@ -38,7 +38,7 @@ const YouTubeSummarizer: React.FC = () => {
     
     const result = await summarizeYouTube(youtubeUrl);
     
-    if (result.success && result.data) {
+    if (result.success && result.data && 'summary' in result.data && 'video_info' in result.data) {
       setSummary(result.data.summary);
       setVideoInfo(result.data.video_info);
     } else {

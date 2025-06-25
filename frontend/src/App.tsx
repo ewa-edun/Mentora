@@ -16,6 +16,7 @@ import ForgotPassword from '../src/pages/Auth/ForgotPassword';
 import Profile from '../src/pages/Profile';
 import Premium from '../src/pages/Premium';
 import StorytellingPage from './pages/StoryTellingPage';
+import StudentDashboard from './pages/StudentDashboard';
 
 // Importing Footer component for consistent layout
 import Footer from '../src/components/Footer';
@@ -36,6 +37,7 @@ function App() {
       <Route path="/voice" element={<VoicePage />} />
       <Route path="/premium" element={<Premium />} />
       <Route path="/storytelling" element={<StorytellingPage />} />
+      <Route path="/student-dashboard" element={<StudentDashboard />} />
      
       {/* Legal Routes */}
       <Route path="/privacy" element={<PrivacyPolicy />} />

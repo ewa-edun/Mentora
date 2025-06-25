@@ -54,6 +54,7 @@ export interface YouTubeErrorResponse {
 }
 
 export interface EmotionResponse {
+  sessionId: string;
   emotion: string;
   confidence: number;
   message: string;

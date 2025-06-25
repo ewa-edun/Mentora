@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Brain, Coffee, BookOpen, Mic, Sparkles, ArrowRight, User, LogOut, Settings, ChevronDown, Crown, FileText, Camera, Youtube} from 'lucide-react';
+import { Brain, Coffee, BookOpen, Mic, Sparkles, ArrowRight, User, LogOut, LayoutDashboard, ChevronDown, Crown, FileText, Camera, Youtube} from 'lucide-react';
 import { getCurrentUser, logoutUser } from '../services/firebase';
 import VoicePanel from '../components/VoicePanel';
 
@@ -153,12 +153,12 @@ const StudentDashboard: React.FC = () => {
                       </Link>
 
                       <Link
-                        to="/profile"
+                        to="/student-dashboard"
                         onClick={() => setShowUserMenu(false)}
                         className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-neutral-700 hover:bg-white/20 hover:text-neutral-800 transition-all duration-300 group"
                       >
-                        <Settings className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                        <span>Settings</span>
+                        <LayoutDashboard className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                        <span>Dashboard</span>
                       </Link>
 
                       <button

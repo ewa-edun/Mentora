@@ -101,9 +101,16 @@ Confirm usage of Bolt.new to build the project and show the ‘Built with Bolt.n
 Provide the email used to build the project on Bolt.new. This email must be associated with the usage of Bolt.new to built the submitted project.
 
 1. PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
-2. Add two files as backup demo data: /demo/avatar-video.mp4  and /demo/voice-narration.mp3
+2. Add two files as backup demo data: /demo/avatar-video.mp4 and /demo/voice-narration.mp3
 3. Fix the elevenlabs and tavus issue
-4. I still havent integerated everything else with firebase firestore, will do that later. 
+4. I still havent integerated everything else with firebase firestore, will do that later.
+Text summarizer done,
+  - StudySessions is in the firebase ts rn
+  So link that to the study and break modes, then call it in the profile page as well.
+  - Need VoiceChats for voicepage
+  - Need StorySession as well for story mode.
+
+
 5. Integerate with supabase storage for media storage. 
 6. Integerate with RevenueCat for subscription. 
 7. Integerate Adaptive Recommendations: AI learns your preferences and suggests optimal study strategies.
