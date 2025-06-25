@@ -12,11 +12,7 @@ const StudentDashboard: React.FC = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  const loadUserData = async () => {
+  const loadUserData = React.useCallback(async () => {
     try {
       const currentUser = getCurrentUser();
       if (!currentUser) {
@@ -40,8 +36,12 @@ const StudentDashboard: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [navigate]);
 
+  useEffect(() => {
+    loadUserData();
+  }, [loadUserData]);
+  
   const handleLogout = async () => {
     try {
       await logoutUser();

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Coffee, UserCircle, LogOut, Settings, ChevronDown, Sparkles, Menu, X, Crown } from 'lucide-react';
+import { BookOpen, Coffee, UserCircle, LogOut, LayoutDashboard, ChevronDown, Sparkles, Menu, X, Crown } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '../services/firebase';
 
 interface NavbarProps {
@@ -166,12 +166,12 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
                   </Link>
 
                   <Link
-                    to="/profile"
+                    to="/student-dashboard"
                     onClick={() => setShowUserMenu(false)}
                     className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-neutral-700 transition-all duration-300 group hover:bg-indigo-100/80"
                   >
-                    <Settings className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                    <span>Settings</span>
+                    <LayoutDashboard className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>Dashboard</span>
                   </Link>
 
                   <div className="border-t border-white/20 my-2"></div>
@@ -274,12 +274,12 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
               <span>Profile</span>
             </Link>
                <Link
-              to="/profile"
+              to="/student-dashboard"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium w-full justify-center bg-indigo-100/80 hover:bg-indigo-200/90 text-neutral-800 transition-all duration-300"
             >
-              <Settings className="w-5 h-5 text-primary-600" />
-              <span>Settings</span>
+              <LayoutDashboard className="w-5 h-5 text-primary-600" />
+              <span>Dashboard</span>
             </Link>
             <button
               onClick={handleLogout}
