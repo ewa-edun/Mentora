@@ -76,11 +76,15 @@ const QuizGenerator: React.FC = () => {
       
       if (result.success && result.data) {
         setRawQuizText(result.data['Your Quiz']);
+        console.log('Raw quiz text from backend:', result.data['Your Quiz']); // Debug log
+        
         const parsedQuiz = parseQuizFromText(result.data['Your Quiz']);
+        console.log('Parsed quiz questions:', parsedQuiz); // Debug log
+        
         if (parsedQuiz.length > 0) {
           setQuiz(parsedQuiz);
         } else {
-          // Enhanced fallback with topic-specific demo questions
+          console.log('No questions parsed, using fallback quiz');
           setQuiz(generateFallbackQuiz(topic));
         }
 
@@ -129,191 +133,140 @@ const QuizGenerator: React.FC = () => {
     const questions: QuizQuestion[] = [];
     
     try {
-      console.log('Parsing quiz text:', text);
+      console.log('🔍 Parsing quiz text:', text);
       
-      // Strategy 1: Split by question numbers and parse each block
-      const questionBlocks = text.split(/(?=\d+\.?\s*[A-Z])/g).filter(block => block.trim());
+      // Split by **Question patterns
+      const questionBlocks = text.split(/\*\*Question\s+\d+:\*\*/gi).filter(block => block.trim());
       
-      for (const block of questionBlocks) {
-        const lines = block.trim().split('\n').filter(line => line.trim());
-        if (lines.length < 2) continue;
+      console.log(`📝 Found ${questionBlocks.length} question blocks`);
+      
+      for (let i = 1; i < questionBlocks.length; i++) { // Skip first empty block
+        const block = questionBlocks[i].trim();
+        if (!block) continue;
+        
+        console.log(`\n🔍 Processing block ${i}:`);
+        console.log(block.substring(0, 200) + '...');
+        
+        const lines = block.split('\n').map(line => line.trim()).filter(line => line);
         
         let questionText = '';
         const options: string[] = [];
         let correctAnswer = 0;
-        let explanation = '';
+        let answerKey = '';
         
-        // Find the question (usually the first line or contains '?')
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i].trim();
+        // Parse each line
+        for (let j = 0; j < lines.length; j++) {
+          const line = lines[j];
           
-          // Skip empty lines and numbers
-          if (!line || /^\d+\.?\s*$/.test(line)) continue;
+          // Skip empty lines
+          if (!line) continue;
           
-          // If this looks like a question
-          if (!questionText && (line.includes('?') || (!line.match(/^[A-D][\)\.]/i) && i === 0))) {
-            questionText = line.replace(/^\d+\.?\s*/, '').trim();
+          // Check for answer line (**Answer:** B)
+          const answerMatch = line.match(/\*\*Answer:\*\*\s*([A-D])/i);
+          if (answerMatch) {
+            answerKey = answerMatch[1].toUpperCase();
+            console.log(`✅ Found answer key: ${answerKey}`);
             continue;
           }
           
-          // If this looks like an option (A), B), C), D) or a), b), c), d))
-          const optionMatch = line.match(/^([A-D]|[a-d])[\)\.]\s*(.+)/i);
+          // Check for options (A), B), C), D))
+          const optionMatch = line.match(/^([A-D])\)\s*(.+)/i);
           if (optionMatch) {
             const optionText = optionMatch[2].trim();
             options.push(optionText);
-            
-            // Check for correct answer indicators
-            if (line.includes('*') || line.includes('✓') || 
-                line.toLowerCase().includes('correct') || 
-                line.includes('(answer)') || 
-                line.includes('[correct]')) {
-              correctAnswer = options.length - 1;
-            }
+            console.log(`📋 Added option ${optionMatch[1]}: ${optionText}`);
             continue;
           }
           
-          // Check for answer indicators
-          if (line.toLowerCase().includes('answer:') || line.toLowerCase().includes('correct:')) {
-            const answerMatch = line.match(/([A-D]|[a-d])/i);
-            if (answerMatch) {
-              const answerLetter = answerMatch[1].toUpperCase();
-              correctAnswer = answerLetter.charCodeAt(0) - 'A'.charCodeAt(0);
-            }
-            continue;
+          // If we don't have a question yet and this isn't an option or answer
+          if (!questionText && !optionMatch && !answerMatch) {
+            questionText = line;
+            console.log(`❓ Question text: ${questionText}`);
           }
-          
-          // Check for explanation
-          if (line.toLowerCase().includes('explanation:') || line.toLowerCase().includes('because:')) {
-            explanation = line.replace(/^.*?explanation:\s*/i, '').replace(/^.*?because:\s*/i, '').trim();
-            continue;
-          }
-          
-          // If we don't have a question yet and this doesn't look like an option
-          if (!questionText && !optionMatch) {
-            questionText = line.replace(/^\d+\.?\s*/, '').trim();
+        }
+        
+        // Convert answer key to index
+        if (answerKey && options.length > 0) {
+          const answerIndex = answerKey.charCodeAt(0) - 'A'.charCodeAt(0);
+          if (answerIndex >= 0 && answerIndex < options.length) {
+            correctAnswer = answerIndex;
+            console.log(`🎯 Correct answer: ${answerKey} = index ${correctAnswer} (${options[correctAnswer]})`);
           }
         }
         
         // Validate and add question
         if (questionText && options.length >= 2) {
-          questions.push({
+          const question: QuizQuestion = {
             question: questionText,
-            options: options.map(opt => opt.replace(/[\*✓\(\[](correct|answer)[\)\]]/gi, '').trim()),
-            correctAnswer: Math.max(0, Math.min(correctAnswer, options.length - 1)),
-            explanation: explanation || `The correct answer is ${options[correctAnswer] || 'option ' + (correctAnswer + 1)}`
-          });
+            options: options,
+            correctAnswer: correctAnswer,
+            explanation: `The correct answer is ${options[correctAnswer]}`
+          };
+          
+          questions.push(question);
+          console.log(`✅ Added question ${questions.length}: ${questionText.substring(0, 50)}...`);
+        } else {
+          console.log(`❌ Skipped invalid question block - Question: "${questionText}", Options: ${options.length}`);
         }
       }
       
-      // Strategy 2: If no questions found, try alternative parsing
+      // If no questions found with **Question pattern, try alternative parsing
       if (questions.length === 0) {
-        const alternativeQuestions = parseAlternativeFormat(text);
-        questions.push(...alternativeQuestions);
-      }
-      
-      // Strategy 3: If still no questions, create from content
-      if (questions.length === 0) {
-        const contentQuestions = generateQuestionsFromContent(text, topic);
-        questions.push(...contentQuestions);
+        console.log('🔄 No questions found with **Question pattern, trying alternative parsing...');
+        
+        // Try splitting by numbered questions (1., 2., etc.)
+        const numberedBlocks = text.split(/(?=\d+\.?\s*[A-Z])/g).filter(block => block.trim());
+        
+        for (const block of numberedBlocks) {
+          const lines = block.trim().split('\n').map(line => line.trim()).filter(line => line);
+          if (lines.length < 3) continue;
+          
+          let questionText = '';
+          const options: string[] = [];
+          let correctAnswer = 0;
+          
+          for (const line of lines) {
+            // Skip question numbers
+            if (/^\d+\.?\s*$/.test(line)) continue;
+            
+            // Check for options
+            const optionMatch = line.match(/^([A-D]|[a-d])[\)\.]\s*(.+)/i);
+            if (optionMatch) {
+              options.push(optionMatch[2].trim());
+              continue;
+            }
+            
+            // Check for answer
+            const answerMatch = line.match(/(?:answer|correct):\s*([A-D]|[a-d])/i);
+            if (answerMatch) {
+              const answerLetter = answerMatch[1].toUpperCase();
+              correctAnswer = answerLetter.charCodeAt(0) - 'A'.charCodeAt(0);
+              continue;
+            }
+            
+            // Question text
+            if (!questionText && !optionMatch && !answerMatch) {
+              questionText = line.replace(/^\d+\.?\s*/, '').trim();
+            }
+          }
+          
+          if (questionText && options.length >= 2) {
+            questions.push({
+              question: questionText,
+              options: options,
+              correctAnswer: Math.max(0, Math.min(correctAnswer, options.length - 1)),
+              explanation: `The correct answer is ${options[correctAnswer] || 'option ' + (correctAnswer + 1)}`
+            });
+          }
+        }
       }
       
     } catch (error) {
-      console.error('Error parsing quiz:', error);
+      console.error('❌ Error parsing quiz:', error);
     }
     
-    console.log('Parsed questions:', questions);
+    console.log(`🎯 Final result: ${questions.length} questions parsed`);
     return questions;
-  };
-
-  const parseAlternativeFormat = (text: string): QuizQuestion[] => {
-    const questions: QuizQuestion[] = [];
-    
-    // Try to find questions by looking for question marks
-    const questionSentences = text.split(/[.!]/).filter(s => s.includes('?'));
-    
-    for (const sentence of questionSentences) {
-      const questionText = sentence.trim();
-      if (questionText.length > 10) {
-        // Generate simple options based on the topic
-        const options = generateOptionsForQuestion(questionText, topic);
-        if (options.length >= 2) {
-          questions.push({
-            question: questionText,
-            options,
-            correctAnswer: 0, // Default to first option
-            explanation: `This question is based on the content about ${topic}`
-          });
-        }
-      }
-    }
-    
-    return questions;
-  };
-
-  const generateOptionsForQuestion = (question: string, topic: string): string[] => {
-    const questionLower = question.toLowerCase();
-    
-    // Generate contextual options based on question type
-    if (questionLower.includes('what') || questionLower.includes('which')) {
-      return [
-        `The main concept related to ${topic}`,
-        `An alternative explanation`,
-        `A different approach`,
-        `None of the above`
-      ];
-    } else if (questionLower.includes('how')) {
-      return [
-        `Through the primary method`,
-        `Using an alternative approach`,
-        `By following standard procedures`,
-        `It depends on the context`
-      ];
-    } else if (questionLower.includes('why')) {
-      return [
-        `Because of the fundamental principles`,
-        `Due to external factors`,
-        `As a result of the process`,
-        `For multiple reasons`
-      ];
-    } else {
-      return [
-        `True`,
-        `False`,
-        `Sometimes`,
-        `It depends`
-      ];
-    }
-  };
-
-  const generateQuestionsFromContent = (text: string, topic: string): QuizQuestion[] => {
-    // Extract key concepts from the text
-    const words = text.toLowerCase().split(/\s+/).filter(word => word.length > 3);
-    const keyWords = [...new Set(words)].slice(0, 5);
-    
-    return [
-      {
-        question: `What is the main focus of the content about ${topic}?`,
-        options: [
-          `Understanding the key concepts and principles`,
-          `Memorizing specific details`,
-          `Learning historical facts only`,
-          `Focusing on terminology`
-        ],
-        correctAnswer: 0,
-        explanation: `The content primarily focuses on understanding the key concepts and principles of ${topic}.`
-      },
-      {
-        question: `Based on the provided information, which approach is most effective for learning about ${topic}?`,
-        options: [
-          `Active engagement with the material`,
-          `Passive reading only`,
-          `Ignoring the details`,
-          `Skipping the examples`
-        ],
-        correctAnswer: 0,
-        explanation: `Active engagement with the material is the most effective approach for learning.`
-      }
-    ];
   };
 
   const generateFallbackQuiz = (topic: string): QuizQuestion[] => {
@@ -408,6 +361,11 @@ const QuizGenerator: React.FC = () => {
     const timeSpent = Date.now() - questionStartTime;
     const isCorrect = selectedAnswer === quiz[currentQuestionIndex].correctAnswer;
     
+    console.log(`Question ${currentQuestionIndex + 1}:`);
+    console.log(`Selected: ${selectedAnswer} (${quiz[currentQuestionIndex].options[selectedAnswer]})`);
+    console.log(`Correct: ${quiz[currentQuestionIndex].correctAnswer} (${quiz[currentQuestionIndex].options[quiz[currentQuestionIndex].correctAnswer]})`);
+    console.log(`Is Correct: ${isCorrect}`);
+    
     const result: QuizResult = {
       questionIndex: currentQuestionIndex,
       selectedAnswer,
@@ -443,6 +401,11 @@ const QuizGenerator: React.FC = () => {
     const correctAnswers = finalResults.filter(result => result.isCorrect).length;
     const percentage = (correctAnswers / quiz.length) * 100;
     const totalTime = Math.floor((Date.now() - quizStartTime) / 1000);
+    
+    console.log('Quiz Results:');
+    console.log(`Correct: ${correctAnswers}/${quiz.length}`);
+    console.log(`Percentage: ${percentage}%`);
+    console.log('Detailed results:', finalResults);
     
     // Update Firebase session with quiz results if user is signed in
     if (user && currentSessionId) {

@@ -22,11 +22,45 @@ def genrate_sumary(text):
     
 def genrate_Quiz(Paragraph):
     try:
-        prompt = f"Genrate the Quiz from the following paragraph:\n\n{Paragraph}"
-        responce = model.generate_content(prompt)
-        return{'Your Quiz':responce.text}
+        # Enhanced prompt for better quiz generation
+        prompt = f"""
+Generate a multiple choice quiz from the following text. Follow this EXACT format:
+
+**Question 1:** [Question text here]
+A) [Option A]
+B) [Option B] 
+C) [Option C]
+D) [Option D]
+**Answer:** [Letter only - A, B, C, or D]
+
+**Question 2:** [Question text here]
+A) [Option A]
+B) [Option B]
+C) [Option C] 
+D) [Option D]
+**Answer:** [Letter only - A, B, C, or D]
+
+Continue this pattern for 5-10 questions. Make sure each question tests understanding of the key concepts.
+
+Text to create quiz from:
+{Paragraph}
+"""
+        
+        print(f"🤖 Sending prompt to Gemini:")
+        print(f"   Prompt length: {len(prompt)} characters")
+        
+        response = model.generate_content(prompt)
+        quiz_text = response.text
+        
+        print(f"🤖 Gemini Response:")
+        print(f"   Response length: {len(quiz_text)} characters")
+        print(f"   Response preview: {quiz_text[:300]}...")
+        
+        return {'Your Quiz': quiz_text}
     except Exception as e:
+        print(f"❌ Gemini API Error: {str(e)}")
         return {"error": str(e)}
+
 
 def ask_qustion(Qustions):
     try:
