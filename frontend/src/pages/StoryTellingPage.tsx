@@ -34,6 +34,13 @@ const StorytellingPage: React.FC = () => {
   const [avatarEnabled, setAvatarEnabled] = useState(true);
   const [error, setError] = useState('');
   const [progress, setProgress] = useState(0);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isPausedSpeech, setIsPausedSpeech] = useState(false);
+  const [voiceSpeed, setVoiceSpeed] = useState(0.9);
+  const [voicePitch, setVoicePitch] = useState(1);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
   const navigate = useNavigate();
 
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -47,6 +54,9 @@ const StorytellingPage: React.FC = () => {
     }
     setUser(currentUser);
     loadCharacters();
+    if ('speechSynthesis' in window) {
+      synthRef.current = window.speechSynthesis;
+    }
   }, [navigate]);
 
   const loadCharacters = async () => {
@@ -256,6 +266,51 @@ const StorytellingPage: React.FC = () => {
       });
     } else {
       await navigator.clipboard.writeText(shareText);
+    }
+  };
+
+   const speakText = (text: string) => {
+    if (!synthRef.current || !voiceEnabled) return;
+    synthRef.current.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = voiceSpeed;
+    utterance.pitch = voicePitch;
+    utterance.volume = 0.8;
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+      setIsPausedSpeech(false);
+    };
+    utterance.onend = () => {
+      setIsSpeaking(false);
+      setIsPausedSpeech(false);
+    };
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      setIsPausedSpeech(false);
+    };
+    currentUtteranceRef.current = utterance;
+    synthRef.current.speak(utterance);
+  };
+
+   const pauseSpeech = () => {
+    if (synthRef.current && isSpeaking) {
+      synthRef.current.pause();
+      setIsPausedSpeech(true);
+    }
+  };
+
+  const resumeSpeech = () => {
+    if (synthRef.current && isPausedSpeech) {
+      synthRef.current.resume();
+      setIsPausedSpeech(false);
+    }
+  };
+
+  const stopSpeech = () => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+      setIsPausedSpeech(false);
     }
   };
 
@@ -641,6 +696,45 @@ const StorytellingPage: React.FC = () => {
                 {/* Story Content */}
                 <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
                   <h3 className="text-xl font-serif font-bold text-neutral-800 mb-6">Story Transcript</h3>
+                <div className="flex items-center gap-2">
+                      {!isSpeaking && !isPausedSpeech && (
+                        <button
+                          onClick={() => speakText(currentStory.content)}
+                          className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-300"
+                          title="Play narration"
+                        >
+                          <Play className="w-6 h-6" />
+                        </button>
+                       )}
+                      {isSpeaking && !isPausedSpeech && (
+                        <button
+                          onClick={pauseSpeech}
+                          className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-300"
+                          title="Pause narration"
+                        >
+                          <Pause className="w-6 h-6" />
+                        </button>
+                      )}
+                      {isPausedSpeech && (
+                        <button
+                          onClick={resumeSpeech}
+                          className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-300"
+                          title="Resume narration"
+                        >
+                          <Play className="w-6 h-6" />
+                        </button>
+                      )}
+                      {(isSpeaking || isPausedSpeech) && (
+                        <button
+                          onClick={stopSpeech}
+                          className="bg-gradient-to-r from-red-500 to-pink-500 text-white p-3 rounded-xl hover:shadow-lg transition-all duration-300"
+                          title="Stop narration"
+                        >
+                          <Square className="w-6 h-6" />
+                        </button>
+                      )}
+                    </div>
+
                   <div className="prose prose-lg max-w-none">
                     <p className="text-neutral-700 leading-relaxed whitespace-pre-wrap">{currentStory.content}</p>
                   </div>

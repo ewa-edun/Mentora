@@ -78,7 +78,7 @@ def generate_story_content(topic, character, emotion, duration):
         story_content = response.text
         
         # Generate a title
-        title_prompt = f"Create a short, engaging title for this story about {topic} featuring {character['name']}. Make it sound magical and educational."
+        title_prompt = f"Create a short, engaging title for this story about {topic} featuring {character['name']}. Make it sound magical and educational. Choose one title only that relates to the {character['personality']} and the {emotion} chosen."
         title_response = model.generate_content(title_prompt)
         title = title_response.text.strip().replace('"', '')
         
