@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {  Brain, Heart, BookOpen, Mic, User, LogOut, Sparkles, TrendingUp, Clock, Target, Award, Calendar, BarChart3, Activity, Zap, ChevronDown, ChevronUp, Lightbulb, Loader2, RefreshCw, ArrowRight, Crown, CheckCircle, Type, FileText, Camera, Youtube} from 'lucide-react';
 import { getCurrentUser, getUserProfile, getUserAnalytics, logoutUser, UserProfile, StudySession, EmotionEntry, LearningProgress} from '../services/firebase';
 import { getChartData, getUserInsights } from '../services/api';
+import AnalyticsCharts from '../components/analytics/AnalyticsCharts';
+import AnalyticsHeatmap from '../components/analytics/AnalyticsHeatmap';
 import VoicePanel from '../components/VoicePanel';
 
 const StudentDashboard: React.FC = () => {
@@ -21,11 +23,72 @@ const StudentDashboard: React.FC = () => {
   const [insights, setInsights] = useState<any[]>([]);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
   const [expandedInsight, setExpandedInsight] = useState<string | null>(null);
+  const [chartData, setChartData] = useState<any>({});
+  const [isChartsLoading, setIsChartsLoading] = useState(false);
   
+
   const navigate = useNavigate();
-  const studyTimeChartRef = useRef<HTMLCanvasElement>(null);
-  const emotionTrendsChartRef = useRef<HTMLCanvasElement>(null);
-  const quizPerformanceChartRef = useRef<HTMLCanvasElement>(null);
+
+ useEffect(() => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
+    setUser(currentUser);
+    loadDashboardData(currentUser.uid);
+  }, [navigate]);
+
+
+  const loadDashboardData = async (userId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Load analytics data
+      const analyticsData = await getUserAnalytics(userId);
+      setAnalytics(analyticsData);
+
+      // Load insights
+      const insightsResult = await getUserInsights(userId, analyticsData);
+      if (insightsResult.success && insightsResult.data) {
+        setInsights(insightsResult.data.insights);
+      }
+
+      // Load initial charts
+      await loadCharts(userId, timeRange);
+      
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadCharts = async (userId: string, range: string) => {
+    try {
+      setIsChartsLoading(true);
+      
+      const chartTypes = ['study_time', 'emotion_trends', 'quiz_performance', 'activity_heatmap'];
+      const chartPromises = chartTypes.map(type => 
+        getChartData(userId, type, range)
+      );
+      
+      const chartResults = await Promise.all(chartPromises);
+      const newChartData: any = {};
+      
+      chartResults.forEach((result, index) => {
+        if (result.success && result.data) {
+          newChartData[chartTypes[index]] = result.data;
+        }
+      });
+      
+      setChartData(newChartData);
+    } catch (error) {
+      console.error('Error loading charts:', error);
+    } finally {
+      setIsChartsLoading(false);
+    }
+  };
 
 const loadUserData = useCallback(async () => {
   try {
@@ -34,7 +97,6 @@ const loadUserData = useCallback(async () => {
       navigate('/login');
       return;
     }
-
     setUser(currentUser);
 
     // Load user profile and analytics
@@ -507,6 +569,51 @@ useEffect(() => {
                   )}
                 </div>
 
+                {/* Charts Section */}
+                <div className="space-y-8">
+                  <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
+                  <h3 className="text-xl font-serif font-bold text-neutral-800 mb-4 flex items-center gap-3">
+                    <Activity className="w-6 h-6 text-purple-500" />
+                    Study Analytics Heatmap
+                  </h3>
+
+                  {isChartsLoading ? (
+                    <div className="flex items-center justify-center p-8">
+                      <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                    </div>
+                  ) : (
+                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
+                   <AnalyticsHeatmap
+                    data={chartData.activity_heatmap?.data}
+                    isLoading={isChartsLoading}
+                  />
+                   </div>
+                  )}
+                </div>
+                </div>
+                    
+                  {analytics && analytics.stats?.streakDays ? (
+                    <div className="space-y-4">
+                      <p className="text-neutral-700 mb-2">
+                        You have maintained a streak of <span className="font-bold">{analytics.stats.streakDays} days</span> of continuous learning!
+                      </p>
+                      <p className="text-neutral-600">
+                        Keep up the great work to extend your streak and unlock new rewards!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center p-6">
+                      <p className="text-neutral-600 mb-4">No streak data available yet.</p>
+                      <Link 
+                        to="/study"
+                        className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                      >
+                        <Zap className="w-5 h-5" />
+                        <span>Start Learning Daily</span>
+                      </Link>
+                    </div>
+                  )}
+
                 {/* Recent Activity */}
                 {analytics && (analytics.studySessions.length > 0 || analytics.breakSessions.length > 0) && (
                   <div className="space-y-4">
@@ -629,12 +736,18 @@ useEffect(() => {
                       <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
                     </div>
                   ) : studyTimeChart ? (
-                    <div className="h-64">
-                      <canvas ref={studyTimeChartRef} />
+                      <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
+                      <AnalyticsCharts
+                          chartData={chartData.study_time?.data}
+                          chartType="line"
+                          height={300}
+                          isLoading={isChartsLoading}
+                       />
                       <div className="text-center mt-4 text-sm text-neutral-600">
                         Study time vs. break time over the past {timeRange === '7d' ? '7 days' : timeRange === '30d' ? '30 days' : '90 days'}
                       </div>
                     </div>
+                    
                   ) : (
                     <div className="text-center p-8">
                       <p className="text-neutral-600">No study time data available for this period.</p>
@@ -656,8 +769,13 @@ useEffect(() => {
                       <Loader2 className="w-8 h-8 animate-spin text-green-500" />
                     </div>
                   ) : quizPerformanceChart ? (
-                    <div className="h-64">
-                      <canvas ref={quizPerformanceChartRef} />
+                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
+                       <AnalyticsCharts
+                          chartData={chartData.quiz_performance?.data}
+                          chartType="line"
+                          height={300}
+                          isLoading={isChartsLoading}
+                       />
                       <div className="text-center mt-4 text-sm text-neutral-600">
                         Quiz scores and attempts over time
                       </div>
@@ -747,8 +865,13 @@ useEffect(() => {
                       <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
                     </div>
                   ) : emotionTrendsChart ? (
-                    <div className="h-64">
-                      <canvas ref={emotionTrendsChartRef} />
+                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-12 shadow-xl">
+                       <AnalyticsCharts
+                          chartData={chartData.emotion_trends?.data}
+                          chartType="line"
+                          height={500}
+                          isLoading={isChartsLoading}
+                       />
                       <div className="text-center mt-4 text-sm text-neutral-600">
                         Your emotional patterns during study sessions
                       </div>
@@ -989,6 +1112,7 @@ useEffect(() => {
                     <h3 className="text-xl font-serif font-bold text-neutral-800">Learning Streak</h3>
                   </div>
                   
+              
                   <div className="text-center p-6">
                     <div className="w-24 h-24 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
                       <span className="text-4xl font-bold text-white">{analytics?.stats?.streakDays || 0}</span>
