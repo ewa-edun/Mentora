@@ -571,7 +571,6 @@ useEffect(() => {
 
                 {/* Charts Section */}
                 <div className="space-y-8">
-                  <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
                   <h3 className="text-xl font-serif font-bold text-neutral-800 mb-4 flex items-center gap-3">
                     <Activity className="w-6 h-6 text-purple-500" />
                     Study Analytics Heatmap
@@ -590,29 +589,6 @@ useEffect(() => {
                    </div>
                   )}
                 </div>
-                </div>
-                    
-                  {analytics && analytics.stats?.streakDays ? (
-                    <div className="space-y-4">
-                      <p className="text-neutral-700 mb-2">
-                        You have maintained a streak of <span className="font-bold">{analytics.stats.streakDays} days</span> of continuous learning!
-                      </p>
-                      <p className="text-neutral-600">
-                        Keep up the great work to extend your streak and unlock new rewards!
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="text-center p-6">
-                      <p className="text-neutral-600 mb-4">No streak data available yet.</p>
-                      <Link 
-                        to="/study"
-                        className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300"
-                      >
-                        <Zap className="w-5 h-5" />
-                        <span>Start Learning Daily</span>
-                      </Link>
-                    </div>
-                  )}
 
                 {/* Recent Activity */}
                 {analytics && (analytics.studySessions.length > 0 || analytics.breakSessions.length > 0) && (

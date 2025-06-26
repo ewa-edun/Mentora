@@ -98,19 +98,19 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, isLoading = fal
         {/* Legend */}
         <div className="flex items-center justify-end mt-4">
           <div className="text-xs text-neutral-600 mr-2">Activity:</div>
-          <div className="flex">
+          <div className="flex space-x-1">
             <div className="w-4 h-4 bg-purple-100 rounded-sm"></div>
             <div className="w-4 h-4 bg-purple-300 rounded-sm"></div>
             <div className="w-4 h-4 bg-purple-500 rounded-sm"></div>
             <div className="w-4 h-4 bg-purple-700 rounded-sm"></div>
             <div className="w-4 h-4 bg-purple-900 rounded-sm"></div>
           </div>
-          <div className="flex text-xs text-neutral-600 ml-2">
+        </div>
+         <div className="flex text-xs text-neutral-600 ml-2 justify-end mt-1">
             <span>Low</span>
-            <span className="mx-8">Medium</span>
+            <span className="mx-2">Medium</span>
             <span>High</span>
           </div>
-        </div>
       </div>
     </div>
   );
