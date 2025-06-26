@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Calendar, Edit3, Save, X, Trash2, Sparkles, Settings, Shield, Bell, Mic, Heart, BookOpen, Trophy, Clock, ArrowLeft, AlertTriangle, TrendingUp, BarChart3} from 'lucide-react';
 import { getCurrentUser, getUserProfile, updateUserProfile, logoutUser, getUserAnalytics, UserProfile } from '../services/firebase';
+import VoicePanel from '../components/VoicePanel';
+
 
 const Profile: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -224,7 +226,7 @@ const Profile: React.FC = () => {
                       className="block w-16 h-16"
                     >
                   <img
-                    src='../../public/white_bolt.png'
+                    src='../../white_bolt.png'
                     alt="Bolt.new logo"
                     className="w-16 h-16 object-contain"
                     draggable={false}
@@ -655,6 +657,8 @@ const Profile: React.FC = () => {
             </div>
           </div>
         </div>
+        
+        <VoicePanel />
       </div>
     </div>
   );

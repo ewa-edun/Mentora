@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {  Brain, Heart, BookOpen, Mic, User, LogOut, Sparkles, TrendingUp, Clock, Target, Award, Calendar, BarChart3, Activity, Zap, ChevronDown, ChevronUp, Lightbulb, Loader2, RefreshCw, ArrowRight, CheckCircle, Type, FileText, Camera, Youtube} from 'lucide-react';
+import {  Brain, Heart, BookOpen, Mic, User, LogOut, Sparkles, TrendingUp, Clock, Target, Award, Calendar, BarChart3, Activity, Zap, ChevronDown, ChevronUp, Lightbulb, Loader2, RefreshCw, ArrowRight, Crown, CheckCircle, Type, FileText, Camera, Youtube} from 'lucide-react';
 import { getCurrentUser, getUserProfile, getUserAnalytics, logoutUser, UserProfile, StudySession, EmotionEntry, LearningProgress} from '../services/firebase';
 import { getChartData, getUserInsights } from '../services/api';
 import VoicePanel from '../components/VoicePanel';
@@ -271,9 +271,10 @@ const StudentDashboard: React.FC = () => {
               </Link>
               <Link 
                 to="/premium"
-                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300"
               >
-                ✨ Upgrade to Mentora+
+                <Crown className="w-4 h-4" />
+                <span>Upgrade</span>
               </Link>
               
               <Link 

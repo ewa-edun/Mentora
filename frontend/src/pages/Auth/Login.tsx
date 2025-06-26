@@ -81,7 +81,7 @@ const Login: React.FC = () => {
                 className="block w-16 h-16"
               >
                 <img
-                  src='../../public/white_bolt.png'
+                  src='../../white_bolt.png'
                   alt="Bolt.new logo"
                   className="w-16 h-16 object-contain"
                   draggable={false}

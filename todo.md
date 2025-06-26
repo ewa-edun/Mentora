@@ -109,13 +109,13 @@ Provide the email used to build the project on Bolt.new. This email must be asso
   - Need VoiceChats for voicepage
   - Need StorySession as well for story mode.
 
-For the navbar mobile view, copy the navbar for home just let the break/study button show then the dropdown should have view profile, dashboard, upgrade, and sign out.
 
 
-5. Integerate with supabase storage for media storage. 
+5. Put voice panel icon on premium, profile page.
 6. Integerate with RevenueCat for subscription. 
 7. Deploy and get Custom Domain via Entri integration.
-8. Finish Demo Video.
+8. Whisper working
+9. Finish Demo Video.
 
 10. Integerate Adaptive Recommendations: AI learns your preferences and suggests optimal study strategies.
 11. Custom Emotion Analysis using NLP keyword matching and sentiment analysis

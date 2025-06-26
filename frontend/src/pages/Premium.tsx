@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Crown, Check, Brain, Heart, Star, Shield, Headphones, Sparkles, ArrowLeft, CreditCard, Gift, Infinity, Target, TrendingUp} from 'lucide-react';
 import { getCurrentUser } from '../services/firebase';
+import VoicePanel from '../components/VoicePanel';
+
 
 const Premium: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
@@ -127,7 +129,7 @@ const Premium: React.FC = () => {
                   className="block w-16 h-16"
                 >
                 <img
-                  src='../../public/white_bolt.png'
+                  src='../../white_bolt.png'
                   alt="Bolt.new logo"
                   className="w-16 h-16 object-contain"
                   draggable={false}
@@ -484,6 +486,8 @@ const Premium: React.FC = () => {
             </div>
           </div>
         </section>
+
+        <VoicePanel />
       </div>
     </div>
   );
