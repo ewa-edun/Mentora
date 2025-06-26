@@ -22,7 +22,7 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, isLoading = fal
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
       </div>
     );
   }
@@ -38,16 +38,16 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, isLoading = fal
   const getIntensityColor = (intensity: number, maxIntensity: number) => {
     const normalizedIntensity = intensity / maxIntensity;
     
-    if (normalizedIntensity < 0.1) return 'bg-primary-50';
-    if (normalizedIntensity < 0.2) return 'bg-primary-100';
-    if (normalizedIntensity < 0.3) return 'bg-primary-200';
-    if (normalizedIntensity < 0.4) return 'bg-primary-300';
-    if (normalizedIntensity < 0.5) return 'bg-primary-400';
-    if (normalizedIntensity < 0.6) return 'bg-primary-500';
-    if (normalizedIntensity < 0.7) return 'bg-primary-600';
-    if (normalizedIntensity < 0.8) return 'bg-primary-700';
-    if (normalizedIntensity < 0.9) return 'bg-primary-800';
-    return 'bg-primary-900';
+    if (normalizedIntensity < 0.1) return 'bg-purple-50';
+    if (normalizedIntensity < 0.2) return 'bg-purple-100';
+    if (normalizedIntensity < 0.3) return 'bg-purple-200';
+    if (normalizedIntensity < 0.4) return 'bg-purple-300';
+    if (normalizedIntensity < 0.5) return 'bg-purple-400';
+    if (normalizedIntensity < 0.6) return 'bg-purple-500';
+    if (normalizedIntensity < 0.7) return 'bg-purple-600';
+    if (normalizedIntensity < 0.8) return 'bg-purple-700';
+    if (normalizedIntensity < 0.9) return 'bg-purple-800';
+    return 'bg-purple-900';
   };
 
   // Group hours into 3-hour blocks for better visualization
@@ -99,11 +99,11 @@ const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ data, isLoading = fal
         <div className="flex items-center justify-end mt-4">
           <div className="text-xs text-neutral-600 mr-2">Activity:</div>
           <div className="flex">
-            <div className="w-4 h-4 bg-primary-100 rounded-sm"></div>
-            <div className="w-4 h-4 bg-primary-300 rounded-sm"></div>
-            <div className="w-4 h-4 bg-primary-500 rounded-sm"></div>
-            <div className="w-4 h-4 bg-primary-700 rounded-sm"></div>
-            <div className="w-4 h-4 bg-primary-900 rounded-sm"></div>
+            <div className="w-4 h-4 bg-purple-100 rounded-sm"></div>
+            <div className="w-4 h-4 bg-purple-300 rounded-sm"></div>
+            <div className="w-4 h-4 bg-purple-500 rounded-sm"></div>
+            <div className="w-4 h-4 bg-purple-700 rounded-sm"></div>
+            <div className="w-4 h-4 bg-purple-900 rounded-sm"></div>
           </div>
           <div className="flex text-xs text-neutral-600 ml-2">
             <span>Low</span>

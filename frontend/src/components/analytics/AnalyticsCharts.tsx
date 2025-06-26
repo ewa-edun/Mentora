@@ -51,7 +51,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                 }
               },
               tooltip: {
-                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                backgroundColor: 'rgba(146, 53, 221, 0.9)',
                 titleColor: '#262626',
                 bodyColor: '#525252',
                 borderColor: 'rgba(0, 0, 0, 0.1)',
@@ -111,7 +111,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center" style={{ height: `${height}px` }}>
-        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
       </div>
     );
   }

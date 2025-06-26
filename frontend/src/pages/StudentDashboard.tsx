@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {  Brain, Heart, BookOpen, Mic, User, LogOut, Sparkles, TrendingUp, Clock, Target, Award, Calendar, BarChart3, Activity, Zap, ChevronDown, ChevronUp, Lightbulb, Loader2, RefreshCw, ArrowRight, Crown, CheckCircle, Type, FileText, Camera, Youtube} from 'lucide-react';
 import { getCurrentUser, getUserProfile, getUserAnalytics, logoutUser, UserProfile, StudySession, EmotionEntry, LearningProgress} from '../services/firebase';
@@ -27,44 +27,38 @@ const StudentDashboard: React.FC = () => {
   const emotionTrendsChartRef = useRef<HTMLCanvasElement>(null);
   const quizPerformanceChartRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (analytics) {
-      loadChartData();
-      loadInsights();
+const loadUserData = useCallback(async () => {
+  try {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      navigate('/login');
+      return;
     }
-  }, [analytics, timeRange]);
 
-  const loadUserData = async () => {
-    try {
-      const currentUser = getCurrentUser();
-      if (!currentUser) {
-        navigate('/login');
-        return;
-      }
+    setUser(currentUser);
 
-      setUser(currentUser);
-      
-      // Load user profile and analytics
-      const [profile, analyticsData] = await Promise.all([
-        getUserProfile(currentUser.uid),
-        getUserAnalytics(currentUser.uid)
-      ]);
+    // Load user profile and analytics
+    const [profile, analyticsData] = await Promise.all([
+      getUserProfile(currentUser.uid),
+      getUserAnalytics(currentUser.uid)
+    ]);
 
-      setUserProfile(profile);
-      setAnalytics(analyticsData);
-    } catch (error) {
-      console.error('Error loading user data:', error);
-      setError('Failed to load dashboard data');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setUserProfile(profile);
+    setAnalytics(analyticsData);
+  } catch (error) {
+    console.error('Error loading user data:', error);
+    setError('Failed to load dashboard data');
+  } finally {
+    setIsLoading(false);
+  }
+}, [navigate]);
 
-  const loadChartData = async () => {
+useEffect(() => {
+  loadUserData();
+}, [loadUserData]);
+
+
+  const loadChartData = useCallback(async () => {
     if (!user) return;
     
     setIsLoadingCharts(true);
@@ -96,9 +90,9 @@ const StudentDashboard: React.FC = () => {
     } finally {
       setIsLoadingCharts(false);
     }
-  };
+  }, [user, timeRange]);
 
-  const loadInsights = async () => {
+  const loadInsights = useCallback(async () => {
     if (!user || !analytics) return;
     
     setIsLoadingInsights(true);
@@ -113,7 +107,15 @@ const StudentDashboard: React.FC = () => {
     } finally {
       setIsLoadingInsights(false);
     }
-  };
+  }, [user, analytics]);
+
+  useEffect(() => {
+  if (analytics) {
+    loadChartData();
+    loadInsights();
+  }
+}, [analytics, timeRange, loadChartData, loadInsights]);
+
 
   const handleLogout = async () => {
     try {
@@ -455,7 +457,7 @@ const StudentDashboard: React.FC = () => {
 
                   {isLoadingInsights ? (
                     <div className="flex items-center justify-center p-8">
-                      <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                      <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
                     </div>
                   ) : insights.length > 0 ? (
                     <div className="space-y-4">
@@ -486,6 +488,7 @@ const StudentDashboard: React.FC = () => {
                               
                               {expandedInsight === `insight-${index}` && (
                                 <div className="mt-4 p-4 bg-white/20 rounded-xl">
+                                  {getInsightIcon(insight.type)}
                                   <p className="text-neutral-700 font-medium mb-2">Recommended Action:</p>
                                   <p className="text-neutral-600">{insight.action}</p>
                                 </div>
@@ -496,7 +499,7 @@ const StudentDashboard: React.FC = () => {
                       ))}
                     </div>
                   ) : (
-                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 text-center">
+                    <div className="backdrop-blur-xl bg-white/30 border border-white/40 rounded-2xl p-8 text-center">
                       <p className="text-neutral-600">
                         Continue using Mentora to receive personalized insights about your learning patterns.
                       </p>
@@ -516,7 +519,7 @@ const StudentDashboard: React.FC = () => {
                       {/* Recent Study Sessions */}
                       {analytics.studySessions.slice(0, 3).map((session: any, index: number) => (
                         <div key={`study-${index}`} className="flex items-center gap-4 p-4 bg-white/20 rounded-xl">
-                          <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
+                          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
                             <Brain className="w-5 h-5 text-white" />
                           </div>
                           <div className="flex-1">
@@ -664,7 +667,7 @@ const StudentDashboard: React.FC = () => {
                       <p className="text-neutral-600">No quiz data available for this period.</p>
                       <Link 
                         to="/study"
-                        className="inline-flex items-center gap-2 mt-4 text-primary-600 hover:text-primary-700 transition-colors"
+                        className="inline-flex items-center gap-2 mt-4 text-purple-600 hover:text-purple-700 transition-colors"
                       >
                         <span>Take a quiz to track your progress</span>
                         <ArrowRight className="w-4 h-4" />
@@ -677,14 +680,14 @@ const StudentDashboard: React.FC = () => {
                 {analytics && analytics.studySessions.length > 0 && (
                   <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 shadow-xl">
                     <div className="flex items-center gap-3 mb-6">
-                      <BookOpen className="w-6 h-6 text-primary-600" />
+                      <BookOpen className="w-6 h-6 text-cyan-600" />
                       <h3 className="text-xl font-serif font-bold text-neutral-800">Recent Study Sessions</h3>
                     </div>
                     
                     <div className="space-y-4">
                       {analytics.studySessions.slice(0, 5).map((session: StudySession, index: number) => (
                         <div key={index} className="flex items-center gap-4 p-4 bg-white/20 rounded-xl">
-                          <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
+                          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
                             {session.type === 'quiz' && <Target className="w-5 h-5 text-white" />}
                             {session.type === 'text_summary' && <Type className="w-5 h-5 text-white" />}
                             {session.type === 'pdf_summary' && <FileText className="w-5 h-5 text-white" />}
@@ -711,7 +714,7 @@ const StudentDashboard: React.FC = () => {
                     
                     {analytics.studySessions.length > 5 && (
                       <div className="text-center mt-6">
-                        <button className="text-primary-600 hover:text-primary-700 transition-colors text-sm font-medium">
+                        <button className="text-blue-500 hover:text-blue-700 transition-colors text-sm font-medium">
                           View All Sessions
                         </button>
                       </div>
@@ -755,7 +758,7 @@ const StudentDashboard: React.FC = () => {
                       <p className="text-neutral-600">No emotion data available for this period.</p>
                       <Link 
                         to="/break"
-                        className="inline-flex items-center gap-2 mt-4 text-primary-600 hover:text-primary-700 transition-colors"
+                        className="inline-flex items-center gap-2 mt-4 text-rose-600 hover:text-rose-700 transition-colors"
                       >
                         <span>Try emotion detection in Break Mode</span>
                         <ArrowRight className="w-4 h-4" />
@@ -796,7 +799,7 @@ const StudentDashboard: React.FC = () => {
                     
                     {analytics.emotionHistory.length > 5 && (
                       <div className="text-center mt-6">
-                        <button className="text-primary-600 hover:text-primary-700 transition-colors text-sm font-medium">
+                        <button className="text-rose-600 hover:text-rose-700 transition-colors text-sm font-medium">
                           View All Emotions
                         </button>
                       </div>

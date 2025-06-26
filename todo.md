@@ -103,15 +103,8 @@ Provide the email used to build the project on Bolt.new. This email must be asso
 1. PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
 2. Add two files as backup demo data: /demo/avatar-video.mp4 and /demo/voice-narration.mp3
 3. Fix the elevenlabs and tavus issue
-4. I still havent integerated firebase firestore with
-  - then call it in the profile page and student dashboard as well.
-  i want to add firebase firestore to the voice chat page, to save the chats and reference the last 5 chats of the user. 
-  - Need VoiceChats for voicepage
-  - Need StorySession as well for story mode.
+4. I'm going to add firebase firestore to the voice chat page, to save the chats and reference the last 5 chats of the user and need StorySession as well for story mode.
 
-
-
-5. Put voice panel icon on premium, profile page.
 6. Integerate with RevenueCat for subscription. 
 7. Deploy and get Custom Domain via Entri integration.
 8. Whisper working
