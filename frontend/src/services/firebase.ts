@@ -2,7 +2,7 @@
 import { initializeApp, FirebaseApp } from "firebase/app";
 import { getAnalytics, Analytics } from "firebase/analytics";
 import {  getAuth,  Auth, signInWithEmailAndPassword,  createUserWithEmailAndPassword,  sendPasswordResetEmail, signOut, onAuthStateChanged, User, UserCredential, updateProfile, sendEmailVerification, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import {  getFirestore,  Firestore, doc,  setDoc,  getDoc,  updateDoc,  collection,  addDoc,  query,  where,  orderBy,  getDocs, deleteDoc, serverTimestamp, DocumentData, QuerySnapshot, limit, Timestamp } from 'firebase/firestore';
+import {  getFirestore,  Firestore, doc,  setDoc,  getDoc,  updateDoc,  collection,  addDoc,  query,  where,  orderBy,  getDocs, deleteDoc, serverTimestamp, DocumentData, QuerySnapshot, limit, Timestamp, FieldValue } from 'firebase/firestore';
  // import {getStorage, Storage,ref, uploadBytes, getDownloadURL, deleteObject,uploadBytesResumable,UploadTask} from 'firebase/storage';
 
 // Firebase configuration
@@ -137,6 +137,53 @@ export interface LearningProgress {
   quizScores: number[];
   lastAccessed: Timestamp | Date | null;
   mastered: boolean;
+  createdAt: Timestamp | Date | null;
+}
+
+export interface VoiceChat {
+  id?: string;
+  userId: string;
+  messages: Array<{
+    id: string;
+    type: 'user' | 'assistant';
+    content: string;
+    timestamp: Timestamp | Date | FieldValue | null;
+    isVoice?: boolean;
+    emotion?: string;
+  }>;
+  startTime: Timestamp | Date | FieldValue | null;
+  endTime?: Timestamp | Date | FieldValue | null;
+  duration?: number; // in seconds
+  totalMessages?: number;
+  topics?: string[];
+  summary?: string;
+  createdAt?: Timestamp | Date | FieldValue | null;
+  updatedAt?: Timestamp | Date | FieldValue | null;
+}
+
+export interface StorySession {
+  id?: string;
+  userId: string;
+  title: string;
+  content: string;
+  character: {
+    id: string;
+    name: string;
+    personality: string;
+    avatar: string;
+  };
+  emotion: string;
+  topic: string;
+  duration: number; // target duration in seconds
+  actualDuration?: number; // actual time spent
+  hasAudio: boolean;
+  hasVideo: boolean;
+  audioUrl?: string;
+  videoUrl?: string;
+  rating?: number; // 1-5 stars
+  completed: boolean;
+  startTime: Timestamp | Date | null;
+  endTime?: Timestamp | Date | null;
   createdAt: Timestamp | Date | null;
 }
 
@@ -734,6 +781,68 @@ export const deleteBreakSession = async (sessionId: string): Promise<void> => {
     throw error;
   }
 };
+
+
+// =============================================================================
+// VOICE CHATS FUNCTIONS
+// =============================================================================
+// Create a new voice chat
+export const createVoiceChat = async (chatData: Omit<VoiceChat, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
+  try {
+    const chatsRef = collection(db, 'voiceChats');
+    const docRef = await addDoc(chatsRef, {
+      ...chatData,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error creating voice chat:', error);
+    throw error;
+  }
+};
+
+// Update an existing voice chat
+export const updateVoiceChat = async (chatId: string, data: Partial<VoiceChat>): Promise<void> => {
+  try {
+    const chatRef = doc(db, 'voiceChats', chatId);
+    await updateDoc(chatRef, {
+      ...data,
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('Error updating voice chat:', error);
+    throw error;
+  }
+};
+
+// Get recent voice chats for a user
+export const getUserVoiceChats = async (userId: string, limitCount: number = 5): Promise<VoiceChat[]> => {
+  try {
+    const chatsRef = collection(db, 'voiceChats');
+    const q = query(
+      chatsRef,
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc'),
+      limit(limitCount)
+    );
+    const querySnapshot = await getDocs(q);
+    const chats: VoiceChat[] = [];
+    querySnapshot.forEach((docSnap) => {
+      chats.push({
+        id: docSnap.id,
+        ...docSnap.data()
+      } as VoiceChat);
+    });
+    return chats;
+  } catch (error) {
+    console.error('Error getting user voice chats:', error);
+    throw error;
+  }
+};
+
+// Re-export serverTimestamp for convenience
+export { serverTimestamp };
 
 // =============================================================================
 // ANALYTICS & INSIGHTS FUNCTIONS

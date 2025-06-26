@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Send, Loader2, Brain, Sparkles, MessageCircle, Copy, CheckCircle, Settings, Heart, Star, Trash2, Download, Share2, Pause, Play, Square } from 'lucide-react';
+import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Send, Loader2, Brain, Sparkles,MessageCircle,Copy,CheckCircle,Settings,Heart,Star,Trash2,Download,Share2,Pause,Play,Square,Clock,History} from 'lucide-react';
 import { askQuestion } from '../services/api';
-import { getCurrentUser } from '../services/firebase';
+import { getCurrentUser, createVoiceChat, updateVoiceChat, getUserVoiceChats, VoiceChat,serverTimestamp } from '../services/firebase';
 
 interface Message {
   id: string;
@@ -10,7 +10,7 @@ interface Message {
   content: string;
   timestamp: Date;
   isVoice?: boolean;
-  emotion?: 'happy' | 'neutral' | 'excited' | 'thoughtful';
+  emotion?: string;
 }
 
 const VoicePage: React.FC = () => {
@@ -22,13 +22,18 @@ const VoicePage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState('');
+  const [savedChatId, setSavedChatId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [voiceSpeed, setVoiceSpeed] = useState(0.9);
   const [voicePitch, setVoicePitch] = useState(1);
-
-  const chatWindowRef = useRef<HTMLDivElement>(null);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [recentChats, setRecentChats] = useState<VoiceChat[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -41,6 +46,7 @@ const VoicePage: React.FC = () => {
       return;
     }
     setUser(currentUser);
+    loadRecentChats(currentUser.uid);
 
     // Initialize speech synthesis
     if ('speechSynthesis' in window) {
@@ -82,12 +88,121 @@ const VoicePage: React.FC = () => {
     };
   }, [navigate]);
 
-  // Scroll only the chat window to bottom when messages change
   useEffect(() => {
-    if (chatWindowRef.current) {
-      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+    scrollToBottom();
+  }, [messages]);
+
+  const loadRecentChats = async (userId: string) => {
+    try {
+      const chats = await getUserVoiceChats(userId, 5);
+      setRecentChats(chats);
+    } catch (error) {
+      console.error('Error loading recent chats:', error);
     }
-  }, [messages, isProcessing]);
+  };
+
+  const startNewChat = () => {
+    if (messages.length > 0) {
+      saveCurrentChat();
+    }
+    setMessages([]);
+    setCurrentChatId(null);
+    setSessionStartTime(new Date());
+    setError('');
+  };
+
+  const saveCurrentChat = async () => {
+    if (!user || messages.length === 0) return;
+
+    try {
+      const chatData = {
+        userId: user.uid,
+        messages: messages.map(msg => ({
+          id: msg.id,
+          type: msg.type,
+          content: msg.content,
+          timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(),
+         ...(msg.isVoice !== undefined && { isVoice: msg.isVoice }),
+        ...(msg.emotion !== undefined && { emotion: msg.emotion }),
+        })),
+        startTime: sessionStartTime || serverTimestamp(),
+        endTime: serverTimestamp(),
+        duration: sessionStartTime ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000) : 0,
+        totalMessages: messages.length,
+       ...(extractTopicsFromMessages(messages).length > 0 && { topics: extractTopicsFromMessages(messages) }),
+  ...(generateChatSummary(messages) && { summary: generateChatSummary(messages) }),
+      };
+
+       let chatId = currentChatId;
+    if (currentChatId) {
+      await updateVoiceChat(currentChatId, chatData);
+    } else {
+      chatId = await createVoiceChat(chatData);
+      setCurrentChatId(chatId);
+    }
+
+    setSavedChatId(chatId || null); // <-- Mark as saved
+
+
+      // Reload recent chats
+      await loadRecentChats(user.uid);
+    } catch (error) {
+      console.error('Error saving chat:', error);
+    }
+  };
+
+  const loadChat = (chat: VoiceChat) => {
+    if (messages.length > 0) {
+      saveCurrentChat();
+    }
+
+    const loadedMessages: Message[] = chat.messages.map(msg => ({
+      id: msg.id,
+      type: msg.type,
+      content: msg.content,
+      timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp?.toString() || Date.now()),
+      isVoice: msg.isVoice,
+      emotion: msg.emotion
+    }));
+
+    setMessages(loadedMessages);
+    setCurrentChatId(chat.id || null);
+    setSessionStartTime(chat.startTime instanceof Date ? chat.startTime : new Date(chat.startTime?.toString() || Date.now()));
+    setShowHistory(false);
+  };
+
+  const extractTopicsFromMessages = (messages: Message[]): string[] => {
+    // Simple topic extraction - in a future version, you'd use NLP
+    const topics: string[] = [];
+    const keywords = ['math', 'science', 'history', 'english', 'physics', 'chemistry', 'biology', 'literature', 'programming', 'coding'];
+    
+    messages.forEach(msg => {
+      keywords.forEach(keyword => {
+        if (msg.content.toLowerCase().includes(keyword) && !topics.includes(keyword)) {
+          topics.push(keyword);
+        }
+      });
+    });
+    
+    return topics.slice(0, 5); // Limit to 5 topics
+  };
+
+  const generateChatSummary = (messages: Message[]): string => {
+    if (messages.length === 0) return '';
+    
+    const userMessages = messages.filter(msg => msg.type === 'user');
+    const topics = extractTopicsFromMessages(messages);
+    
+    if (topics.length > 0) {
+      return `Discussion about ${topics.join(', ')} with ${userMessages.length} questions asked.`;
+    }
+    
+    return `General conversation with ${userMessages.length} questions and responses.`;
+  };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const startListening = () => {
     if (!recognitionRef.current) {
@@ -108,11 +223,15 @@ const VoicePage: React.FC = () => {
 
   const speakText = (text: string) => {
     if (!synthRef.current || !voiceEnabled) return;
+
+    // Cancel any ongoing speech
     synthRef.current.cancel();
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = voiceSpeed;
     utterance.pitch = voicePitch;
     utterance.volume = 0.8;
+
     utterance.onstart = () => {
       setIsSpeaking(true);
       setIsPaused(false);
@@ -125,6 +244,7 @@ const VoicePage: React.FC = () => {
       setIsSpeaking(false);
       setIsPaused(false);
     };
+
     currentUtteranceRef.current = utterance;
     synthRef.current.speak(utterance);
   };
@@ -155,6 +275,11 @@ const VoicePage: React.FC = () => {
     const messageContent = content || textInput.trim();
     if (!messageContent) return;
 
+    // Start new session if this is the first message
+    if (messages.length === 0 && !sessionStartTime) {
+      setSessionStartTime(new Date());
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
@@ -168,10 +293,12 @@ const VoicePage: React.FC = () => {
     setTextInput('');
     setIsProcessing(true);
     setError('');
+    console.log('Calling askQuestion with:', messageContent); 
 
     try {
       const result = await askQuestion(messageContent);
-
+      console.log('askQuestion result:', result);
+      
       if (result.success && result.data) {
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -190,7 +317,8 @@ const VoicePage: React.FC = () => {
       } else {
         setError(result.error || 'Failed to get response');
       }
-    } catch {
+    } catch (err) {
+      console.error('askQuestion threw:', err);
       setError('Failed to send message');
     } finally {
       setIsProcessing(false);
@@ -222,10 +350,10 @@ const VoicePage: React.FC = () => {
   };
 
   const handleDownload = () => {
-    const conversationText = messages.map(msg =>
+    const conversationText = messages.map(msg => 
       `${msg.type === 'user' ? 'You' : 'Mentora'} (${msg.timestamp.toLocaleTimeString()}): ${msg.content}`
     ).join('\n\n');
-
+    
     const blob = new Blob([conversationText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -238,7 +366,12 @@ const VoicePage: React.FC = () => {
   };
 
   const clearConversation = () => {
+    if (messages.length > 0) {
+      saveCurrentChat();
+    }
     setMessages([]);
+    setCurrentChatId(null);
+    setSessionStartTime(null);
     setError('');
     stopSpeaking();
   };
@@ -258,15 +391,32 @@ const VoicePage: React.FC = () => {
     }
   };
 
-  // For Mentora's chat bubble color (thinking and answered)
+  const formatChatTime = (timestamp: any) => {
+    if (!timestamp) return '';
+    
+    let date;
+    if (timestamp.toDate) {
+      date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
+    } else if (timestamp.seconds) {
+      date = new Date(timestamp.seconds * 1000);
+    } else {
+      return '';
+    }
+    
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+    // For Mentora's chat bubble color (thinking and answered)
   const mentoraBubbleColor = isProcessing
     ? 'bg-gradient-to-r from-blue-100 via-indigo-100 to-white border-blue-200'
     : 'bg-gradient-to-r from-indigo-50 via-white to-blue-50 border-indigo-100';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 pointer-events-none">
+      {/* Animated background elements - consistent with app */}
+      <div className="absolute inset-0">
         <div className="absolute top-20 left-20 w-32 h-32 bg-primary-200/30 rounded-full blur-xl animate-float"></div>
         <div className="absolute top-40 right-32 w-24 h-24 bg-secondary-200/30 rounded-full blur-lg animate-float" style={{ animationDelay: '2s' }}></div>
         <div className="absolute bottom-32 left-1/3 w-40 h-40 bg-primary-100/40 rounded-full blur-2xl animate-float" style={{ animationDelay: '4s' }}></div>
@@ -274,12 +424,12 @@ const VoicePage: React.FC = () => {
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Header */}
+        {/* Header - consistent with app styling */}
         <header className="backdrop-blur-xl glass-card bg-white/20 border-b border-white/30 px-6 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link
-                to="/home"
+              <Link 
+                to="/home" 
                 className="flex items-center gap-3 text-primary-600 hover:text-primary-700 transition-colors group"
               >
                 <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
@@ -288,7 +438,7 @@ const VoicePage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 backdrop-blur-xl bg-gradient-to-br from-lavender-400 to-indigo-500 rounded-2xl border-white/20 rounded-2xl px-6 py-3">
+              <div className="flex items-center gap-3 backdrop-blur-xl bg-gradient-to-br from-lavender-400 to-indigo-500 rounded-2xl border-white/20 rounded-2xl px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center glow-primary animate-float">
                   <Brain className="w-6 h-6 text-white" />
                 </div>
@@ -296,39 +446,46 @@ const VoicePage: React.FC = () => {
                   <h1 className="text-xl font-serif font-bold bg-clip-text text-white">
                     Voice Assistant
                   </h1>
-                  <p className="text-sm text-gray-800">Chat with Mentora AI</p>
+                  <p className="text-sm text-grey-800">Chat with Mentora AI</p>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setShowSettings(!showSettings)}
-                className="p-3 rounded-xl backdrop-blur-xl bg-white/30 border border-white/40 text-neutral-700 hover:text-neutral-800 hover:bg-white/30 transition-all duration-300"
+                onClick={() => setShowHistory(!showHistory)}
+                className="p-3 rounded-xl backdrop-blur-xl bg-white/30 border border-white/40 text-neutral-700 hover:text-neutral-800 hover:bg-white/40 transition-all duration-300"
               >
-                <Settings className="w-5 h-5" />
+                <History className="w-5 h-5" />
               </button>
 
               <button
+                onClick={() => setShowSettings(!showSettings)}
+                className="p-3 rounded-xl backdrop-blur-xl bg-black-200 border border-black-300 text-neutral-700 hover:text-neutral-800 hover:bg-black-300 transition-all duration-300"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+              
+              <button
                 onClick={() => setVoiceEnabled(!voiceEnabled)}
                 className={`p-3 rounded-xl backdrop-blur-xl border border-white/20 transition-all duration-300 ${
-                  voiceEnabled
-                    ? 'bg-green-100/60 text-green-600 hover:bg-green-100/80'
+                  voiceEnabled 
+                    ? 'bg-green-100/60 text-green-600 hover:bg-green-100/80' 
                     : 'bg-red-100/60 text-red-600 hover:bg-red-100/80'
                 }`}
               >
                 {voiceEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
               </button>
-
+              
               {messages.length > 0 && (
                 <>
                   <button
                     onClick={handleDownload}
-                    className="p-3 rounded-xl backdrop-blur-xl bg-black/10 border border-black/20 text-neutral-700 hover:text-neutral-800 hover:bg-black/20 transition-all duration-300"
+                    className="p-3 rounded-xl backdrop-blur-xl bg-grey-200/20 border border-grey-300/30 text-neutral-700 hover:text-neutral-800 hover:bg-grey-300/30 transition-all duration-300"
                   >
                     <Download className="w-5 h-5" />
                   </button>
-
+                  
                   <button
                     onClick={clearConversation}
                     className="p-3 rounded-xl backdrop-blur-xl bg-red-100/60 border border-red-200/50 text-red-600 hover:text-red-700 hover:bg-red-100/80 transition-all duration-300"
@@ -339,6 +496,63 @@ const VoicePage: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* Chat History Panel */}
+          {showHistory && (
+            <div className="max-w-6xl mx-auto mt-4 p-6 backdrop-blur-xl bg-white/20 border border-white/30 rounded-2xl shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-serif font-bold text-neutral-800">Recent Conversations</h3>
+                <button
+                  onClick={startNewChat}
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transition-all duration-300"
+                >
+                  New Chat
+                </button>
+              </div>
+              
+              {recentChats.length > 0 ? (
+                <div className="space-y-3">
+                  {recentChats.map((chat, index) => (
+                    <div
+                      key={chat.id || index}
+                      onClick={() => loadChat(chat)}
+                      className="p-4 bg-white/30 rounded-xl border border-white/40 hover:bg-white/40 cursor-pointer transition-all duration-300"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium text-neutral-800 truncate">
+                            {chat.summary || 'Conversation'}
+                          </p>
+                          <div className="flex items-center gap-4 text-sm text-neutral-600 mt-1">
+                            <span className="flex items-center gap-1">
+                              <MessageCircle className="w-4 h-4" />
+                              {chat.totalMessages} messages
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              {Math.floor((chat.duration || 0) / 60)}m
+                            </span>
+                            <span>{formatChatTime(chat.createdAt)}</span>
+                          </div>
+                          {chat.topics && chat.topics.length > 0 && (
+                            <div className="flex gap-2 mt-2">
+                              {chat.topics.slice(0, 3).map((topic, i) => (
+                                <span key={i} className="bg-purple-100/60 text-purple-700 px-2 py-1 rounded-lg text-xs">
+                                  {topic}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-neutral-600 text-center py-8">No recent conversations found. Start a new chat!</p>
+              )}
+            </div>
+          )}
 
           {/* Settings Panel */}
           {showSettings && (
@@ -385,8 +599,8 @@ const VoicePage: React.FC = () => {
             {messages.length === 0 && (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center max-w-3xl">
-                  <div className="relative mb-6">
-                    <div className="w-24 h-24 bg-gradient-to-r from-lavender-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto glow-primary animate-float">
+                  <div className="relative mb-8">
+                    <div className="w-24 h-24 bg-gradient-to-r from-lavender-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto glow-lavender animate-float">
                       <MessageCircle className="w-12 h-12 text-white" />
                     </div>
                     <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
@@ -396,16 +610,16 @@ const VoicePage: React.FC = () => {
                       <Heart className="w-4 h-4 text-white" />
                     </div>
                   </div>
-
+                  
                   <h2 className="text-4xl font-serif font-bold bg-gradient-to-r from-rose-400 to-red-300 bg-clip-text text-transparent mb-4">
                     Hello, {getUserDisplayName()}! 👋
                   </h2>
                   <p className="text-xl text-neutral-600 mb-8 leading-relaxed">
-                    I'm your AI study companion, ready to help you learn, explore, and grow.
+                    I'm your AI study companion, ready to help you learn, explore, and grow. 
                     Ask me anything or just start a conversation!
                   </p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mb-6">
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mb-5">
                     <div className="backdrop-blur-xl bg-white/40 border border-white/20 rounded-2xl p-6 hover:bg-white/70 hover:border-white/30 transition-all duration-300 group">
                       <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Mic className="w-6 h-6 text-white" />
@@ -413,7 +627,7 @@ const VoicePage: React.FC = () => {
                       <h3 className="font-serif font-bold text-neutral-800 mb-2">🎙️ Voice Magic</h3>
                       <p className="text-sm text-neutral-600">Speak naturally and I'll understand. Click the mic to start!</p>
                     </div>
-
+                    
                     <div className="backdrop-blur-xl bg-white/40 border border-white/20 rounded-2xl p-6 hover:bg-white/70 hover:border-white/30 transition-all duration-300 group">
                       <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Brain className="w-6 h-6 text-white" />
@@ -421,7 +635,7 @@ const VoicePage: React.FC = () => {
                       <h3 className="font-serif font-bold text-neutral-800 mb-2">⚡ Smart Responses</h3>
                       <p className="text-sm text-neutral-600">Get instant, intelligent answers to any question you have.</p>
                     </div>
-
+                    
                     <div className="backdrop-blur-xl bg-white/40 border border-white/20 rounded-2xl p-6 hover:bg-white/70 hover:border-white/30 transition-all duration-300 group">
                       <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Heart className="w-6 h-6 text-white" />
@@ -435,127 +649,135 @@ const VoicePage: React.FC = () => {
             )}
 
             {/* Messages List */}
-            <div
-              ref={chatWindowRef}
-              className="flex-1 overflow-y-auto space-y-6 mb-6 pr-4 custom-scrollbar"
-              style={{ maxHeight: '60vh', minHeight: '200px' }}
-            >
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
-                >
+            {messages.length > 0 && (
+              <div className="flex-1 overflow-y-auto space-y-6 mb-6 pr-4">
+                {messages.map((message) => (
                   <div
-                    className={`max-w-4xl p-6 rounded-3xl border transition-all duration-300 hover:scale-[1.02] ${
-                      message.type === 'user'
+                    key={message.id}
+                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+                  >
+                    <div
+                      className={`max-w-4xl p-5 rounded-3xl backdrop-blur-xl border transition-all duration-300 ${
+                        message.type === 'user'
                         ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-neutral-800'
                         : mentoraBubbleColor + ' text-neutral-800'
-                    }`}
-                  >
-                    <div className="flex items-start gap-4">
-                      {message.type === 'assistant' && (
-                        <div className={`w-12 h-12 bg-gradient-to-r ${getEmotionColor(message.emotion)} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
-                          <Brain className="w-6 h-6 text-white" />
-                        </div>
-                      )}
-
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="text-lg font-serif font-bold">
-                            {message.type === 'user' ? 'You' : 'Mentora'}
-                          </span>
-                          {message.isVoice && (
-                            <div className="flex items-center gap-1 bg-green-500/20 px-2 py-1 rounded-full">
-                              <Mic className="w-3 h-3 text-green-600" />
-                              <span className="text-xs text-green-600 font-medium">Voice</span>
-                            </div>
-                          )}
-                          <span className="text-sm text-neutral-500">
-                            {message.timestamp.toLocaleTimeString()}
-                          </span>
-                          {message.type === 'user' && (
-                            <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                              <span className="text-white font-bold text-sm">
-                                {getUserDisplayName().charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        <p className="leading-relaxed whitespace-pre-wrap text-lg">{message.content}</p>
-
+                      }`}
+                    >
+                      <div className="flex items-start gap-4">
                         {message.type === 'assistant' && (
-                          <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
-                            <button
-                              onClick={() => handleCopy(message.content, message.id)}
-                              className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/20 px-3 py-2 rounded-xl hover:bg-white/30"
-                            >
-                              {copied === message.id ? (
-                                <>
-                                  <CheckCircle className="w-4 h-4 text-green-500" />
-                                  <span>Copied!</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-4 h-4" />
-                                  <span>Copy</span>
-                                </>
-                              )}
-                            </button>
-
-                            {voiceEnabled && (
-                              <button
-                                onClick={() => speakText(message.content)}
-                                className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/20 px-3 py-2 rounded-xl hover:bg-white/30"
-                              >
-                                <Volume2 className="w-4 h-4" />
-                                <span>Speak</span>
-                              </button>
-                            )}
-
-                            <button
-                              onClick={() => handleShare(message.content)}
-                              className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/20 px-3 py-2 rounded-xl hover:bg-white/30"
-                            >
-                              <Share2 className="w-4 h-4" />
-                              <span>Share</span>
-                            </button>
-
-                            <button
-                              className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 transition-colors bg-amber-100/60 px-3 py-2 rounded-xl hover:bg-amber-100/80"
-                            >
-                              <Star className="w-4 h-4" />
-                              <span>Save</span>
-                            </button>
+                          <div className={`w-12 h-12 bg-gradient-to-r ${getEmotionColor(message.emotion)} rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                            <Brain className="w-6 h-6 text-white" />
                           </div>
                         )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {isProcessing && (
-                <div className="flex justify-start animate-fadeIn">
-                  <div className={`max-w-4xl p-6 rounded-3xl border ${mentoraBubbleColor} transition-all duration-300 hover:scale-[1.02]`}>
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-2xl flex items-center justify-center">
-                        <Brain className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
-                        <span className="text-neutral-700">Mentora is thinking...</span>
-                        <div className="flex gap-1">
-                          <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-secondary-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="text-lg font-serif font-bold">
+                              {message.type === 'user' ? 'You' : 'Mentora'}
+                            </span>
+                            {message.isVoice && (
+                              <div className="flex items-center gap-1 bg-green-500/20 px-2 py-1 rounded-full">
+                                <Mic className="w-3 h-3 text-green-600" />
+                                <span className="text-xs text-green-600 font-medium">Voice</span>
+                              </div>
+                            )}
+                            <span className="text-sm text-neutral-500">
+                              {message.timestamp.toLocaleTimeString()}
+                            </span>
+                            {message.type === 'user' && (
+                              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <span className="text-white font-bold text-sm">
+                                  {getUserDisplayName().charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <p className="leading-relaxed whitespace-pre-wrap text-lg">{message.content}</p>
+                          
+                          {message.type === 'assistant' && (
+                            <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
+                              <button
+                                onClick={() => handleCopy(message.content, message.id)}
+                                className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/20 px-3 py-2 rounded-xl hover:bg-white/30"
+                              >
+                                {copied === message.id ? (
+                                  <>
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                    <span>Copied!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-4 h-4" />
+                                    <span>Copy</span>
+                                  </>
+                                )}
+                              </button>
+                              
+                              {voiceEnabled && (
+                                <button
+                                  onClick={() => speakText(message.content)}
+                                  className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/20 px-3 py-2 rounded-xl hover:bg-white/30"
+                                >
+                                  <Volume2 className="w-4 h-4" />
+                                  <span>Speak</span>
+                                </button>
+                              )}
+                              
+                              <button
+                                onClick={() => handleShare(message.content)}
+                                className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-800 transition-colors bg-white/20 px-3 py-2 rounded-xl hover:bg-white/30"
+                              >
+                                <Share2 className="w-4 h-4" />
+                                <span>Share</span>
+                              </button>
+                              
+                              <button
+                                onClick={saveCurrentChat}
+                                className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 transition-colors bg-amber-100/60 px-3 py-2 rounded-xl hover:bg-amber-100/80"
+                              >   
+                                 {savedChatId === currentChatId ? (
+                                  <>
+                                    <CheckCircle className="w-4 h-4 text-amber-500" />
+                                    <span>Saved!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Star className="w-4 h-4" />
+                                <span>Save</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
+                ))}
+                
+                {isProcessing && (
+                  <div className="flex justify-start animate-fadeIn">
+                    <div className={`max-w-4xl p-6 rounded-3xl border ${mentoraBubbleColor} transition-all duration-300 hover:scale-[1.02]`}>
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-2xl flex items-center justify-center">
+                          <Brain className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
+                          <span className="text-neutral-700">Mentora is thinking...</span>
+                          <div className="flex gap-1">
+                            <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-secondary-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Error Message */}
             {error && (
@@ -627,9 +849,9 @@ const VoicePage: React.FC = () => {
                     onKeyPress={handleKeyPress}
                     placeholder={isListening ? "🎤 Listening..." : "Type your message or use voice..."}
                     disabled={isListening || isProcessing}
-                    className="w-full px-6 py-4 rounded-2xl border-0 bg-white/100 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300 resize-none text-lg custom-scrollbar"
+                    className="w-full px-6 py-4 rounded-2xl border-0 bg-white/100 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/50 focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all duration-300 resize-none text-lg"
                     rows={1}
-                    style={{ minHeight: '64px', maxHeight: '160px', overflowY: 'auto' }}
+                    style={{ minHeight: '64px', maxHeight: '160px' }}
                   />
                   <div className="absolute bottom-2 right-2 text-xs text-neutral-500">
                     {textInput.length}/1000
@@ -661,6 +883,12 @@ const VoicePage: React.FC = () => {
                       {isPaused ? 'Speech paused' : 'Speaking response...'}
                     </span>
                   )}
+                  {sessionStartTime && (
+                    <span className="flex items-center gap-2 text-blue-600">
+                      <Clock className="w-3 h-3" />
+                      Session: {Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 60000)}m
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-4">
                   <span>Press Enter to send</span>
@@ -669,24 +897,11 @@ const VoicePage: React.FC = () => {
                 </div>
               </div>
             </div>
+
           </div>
         </main>
+        
       </div>
-      {/* Custom scrollbar styles */}
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 7px;
-          background: #f3f4f6;
-          border-radius: 14px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(135deg, #a5b4fc 0%, #818cf8 100%);
-          border-radius: 14px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
-        }
-      `}</style>
     </div>
   );
 };
