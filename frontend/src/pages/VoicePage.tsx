@@ -35,7 +35,6 @@ const VoicePage: React.FC = () => {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [isRecording, setIsRecording] = useState(false);
-  const [messages, setMessages] = useState<string[]>([]);
   const [currentEmotion, setCurrentEmotion] = useState<string>('neutral');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);

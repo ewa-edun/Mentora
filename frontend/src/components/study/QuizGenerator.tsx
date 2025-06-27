@@ -72,7 +72,7 @@ const QuizGenerator: React.FC = () => {
         setCurrentSessionId(sessionId);
       }
 
-      const result = await generateQuiz(topic);
+      const result = await generateQuiz(topic, difficulty);
       
       if (result.success && result.data) {
         setRawQuizText(result.data['Your Quiz']);

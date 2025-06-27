@@ -239,14 +239,14 @@ export const summarizeYouTube = async (url: string): Promise<ApiResponse<YouTube
 };
 
 // Quiz generation
-export const generateQuiz = async (text: string): Promise<ApiResponse<QuizResponse>> => {
+export const generateQuiz = async (text: string, difficulty: string): Promise<ApiResponse<QuizResponse>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/generate-quiz`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, difficulty : 'beginner' }),
     });
 
     if (!response.ok) {

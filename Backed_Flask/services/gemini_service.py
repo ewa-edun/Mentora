@@ -20,9 +20,16 @@ def genrate_sumary(text):
     except Exception as e:
         return {"error": str(e)}
     
-def genrate_Quiz(Paragraph):
+def genrate_Quiz(Paragraph, difficulty="Beginner"):
     try:
-        # Enhanced prompt for better quiz generation
+        # Set question count and prompt style based on difficulty
+        if difficulty.lower() == "beginner":
+            style = "Ask basic, direct questions that test fundamental understanding. Use simple language."
+        elif difficulty.lower() == "intermediate":
+            style = "Ask moderately challenging questions that require some reasoning, application, or synthesis. Mix in a few scenario-based questions."
+        else:  # Advanced/Difficult
+            style = "Ask challenging, tactical questions that require deep reasoning, analysis, and problem-solving. Use case studies, multi-step reasoning, or questions that require connecting concepts."
+
         prompt = f"""
 Generate a multiple choice quiz from the following text. Follow this EXACT format:
 
@@ -40,13 +47,14 @@ C) [Option C]
 D) [Option D]
 **Answer:** [Letter only - A, B, C, or D]
 
-Continue this pattern for 5-10 questions. Make sure each question tests understanding of the key concepts.
+Continue this pattern for 8-16 questions. Make sure each question tests understanding of the key concepts. 
+{style}
 
 Text to create quiz from:
 {Paragraph}
 """
         
-        print(f"🤖 Sending prompt to Gemini:")
+        print(f"🤖 Sending prompt to Gemini (difficulty: {difficulty}):")
         print(f"   Prompt length: {len(prompt)} characters")
         
         response = model.generate_content(prompt)
