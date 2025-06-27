@@ -928,6 +928,8 @@ export const getUserAnalytics = async (userId: string): Promise<{
     mostCommonEmotion: string;
     streakDays: number;
     topicsStudied: number;
+    voiceChats: number;
+    storiesGenerated: number;
   };
 }> => {
   try {

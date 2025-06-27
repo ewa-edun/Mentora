@@ -1,41 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, 
-  Brain, 
-  Sparkles, 
-  BarChart3, 
-  TrendingUp, 
-  Clock, 
-  Target, 
-  Heart, 
-  BookOpen,
-  Trophy,
-  Calendar,
-  Activity,
-  Zap,
-  Star,
-  Users,
-  Award,
-  Lightbulb,
-  ChevronRight,
-  RefreshCw,
-  Download,
-  Share2,
-  MessageCircle,
-  Mic,
-  Volume2
-} from 'lucide-react';
-import { 
-  getCurrentUser, 
-  getUserAnalytics 
-} from '../services/firebase';
-import { 
-  getChartData, 
-  getUserInsights 
-} from '../services/api';
+import { ArrowLeft, Brain, Sparkles, BarChart3, TrendingUp, Clock, Target, Heart, BookOpen, Trophy, Calendar, Activity, Zap, Star, Lightbulb, RefreshCw, MessageCircle, Mic, Volume2} from 'lucide-react';
+import {  getCurrentUser,  getUserAnalytics } from '../services/firebase';
+import {  getChartData,  getUserInsights } from '../services/api';
 import AnalyticsCharts from '../components/analytics/AnalyticsCharts';
-import ActivityHeatmap from '../components/analytics/ActivityHeatmap';
+import AnalyticsHeatmap from '../components/analytics/AnalyticsHeatmap';
 
 const StudentDashboard: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -334,6 +303,7 @@ const StudentDashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
+                
               </div>
             )}
 
@@ -490,7 +460,7 @@ const StudentDashboard: React.FC = () => {
                     <Activity className="w-5 h-5 text-purple-500" />
                     Study Activity Heatmap
                   </h4>
-                  <ActivityHeatmap
+                  <AnalyticsHeatmap
                     data={chartData.activity_heatmap?.data}
                     isLoading={isChartsLoading}
                   />
