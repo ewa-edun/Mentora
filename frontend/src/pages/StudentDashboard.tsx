@@ -1158,8 +1158,8 @@ useEffect(() => {
                      </div>
                      <h5 className="font-serif font-bold text-neutral-800 mb-2">Voice Conversations</h5>
                      <p className="text-2xl font-bold text-neutral-800">
-                        {analytics?.stats.voiceChats || 0}
-                     </p>
+                     {analytics?.stats.voiceChats || 0}
+                      </p>
                      </div>
             
                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 text-center">
@@ -1168,20 +1168,20 @@ useEffect(() => {
                    </div>
                    <h5 className="font-serif font-bold text-neutral-800 mb-2">Total Messages</h5>
                      <p className="text-2xl font-bold text-neutral-800">
-                      {analytics?.voiceChats.reduce((total: number, chat: any) => total + (chat.totalMessages || 0), 0) || 0}
+                    {(analytics?.stats.voiceChats || 0) + (analytics?.stats.storiesGenerated || 0)}
                       </p>
                      </div>
                     </div>
             
                      {/* Recent Stories */}
-                  {analytics && analytics.storySessions.length > 0 && (
+                  {(analytics?.storySessions ?? []).length > 0 && (
                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
                      <h4 className="text-xl font-serif font-bold text-neutral-800 mb-6 flex items-center gap-3">
                       <BookOpen className="w-5 h-5 text-pink-500" />
                         Recent Stories
                    </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   {analytics.storySessions.slice(0, 6).map((story: any, index: number) => (
+                   {(analytics?.storySessions ?? []).slice(0, 6).map((story: any, index: number) => (
                     <div key={index} className="p-4 bg-white/20 rounded-xl border border-white/30">
                     <div className="flex items-center gap-3 mb-2">
                 <span className="text-2xl">{story.character.avatar}</span>
@@ -1211,28 +1211,28 @@ useEffect(() => {
                      <span className="bg-purple-100/60 text-purple-700 px-2 py-1 rounded-lg text-xs">Completed</span>
                     )}
                      {story.rating && (
-                                          <div className="flex items-center gap-1">
-                                            {[...Array(story.rating)].map((_: any, i: number) => (
-                                              <Star key={i} className="w-3 h-3 text-amber-400 fill-current" />
-                                            ))}
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
+                       <div className="flex items-center gap-1">
+                        {[...Array(story.rating)].map((_: any, i: number) => (
+                         <Star key={i} className="w-3 h-3 text-amber-400 fill-current" />
+                                 ))}
+                               </div>
+                             )}
+                           </div>
+                        </div>
+                       ))}
+                     </div>
+                   </div>
+                 )}
               
-                           {/* Voice Chat Summary */}
-                     {analytics && analytics.voiceChats.length > 0 && (
+                {/* Voice Chat Summary */}
+                     {(analytics?.voiceChats ?? []).length > 0 && (
                        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
                       <h4 className="text-xl font-serif font-bold text-neutral-800 mb-6 flex items-center gap-3">
                         <MessageCircle className="w-5 h-5 text-indigo-500" />
                            Voice Chat Summary
                        </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {analytics.voiceChats.slice(0, 4).map((chat: any, index: number) => (
+                  {(analytics?.voiceChats ?? []).slice(0, 4).map((chat: any, index: number) => (
                   <div key={index} className="p-4 bg-white/20 rounded-xl border border-white/30">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">

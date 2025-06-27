@@ -965,7 +965,9 @@ export const getUserAnalytics = async (userId: string): Promise<{
         averageSessionLength,
         mostCommonEmotion,
         streakDays: 0, // Calculate based on consecutive study days
-        topicsStudied: learningProgress.length
+        topicsStudied: learningProgress.length,
+        voiceChats: (await getUserVoiceChats(userId)).length,
+        storiesGenerated: (await getUserStorySessions(userId)).length
       }
     };
   } catch (error) {
