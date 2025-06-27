@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, MicOff, Heart, Loader2, RefreshCw, MessageCircle } from 'lucide-react';
 import { detectEmotion } from '../../services/api';
+import {  getCurrentUser,  createBreakSession,  recordEmotionEntry } from '../../services/firebase';
 
 interface EmotionDetectionProps {
   onEmotionDetected: (emotionData: any) => void;
@@ -12,10 +13,14 @@ const EmotionDetection: React.FC<EmotionDetectionProps> = ({ onEmotionDetected }
   const [transcription, setTranscription] = useState('');
   const [error, setError] = useState('');
   const [hasSpoken, setHasSpoken] = useState(false);
+  const [user, setUser] = useState<any>(null);
   
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+
     // Initialize speech recognition
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
@@ -76,6 +81,43 @@ const EmotionDetection: React.FC<EmotionDetectionProps> = ({ onEmotionDetected }
       const result = await detectEmotion(text);
       
       if (result.success && result.data) {
+        // Record emotion entry in Firebase if user is signed in
+        if (user) {
+          try {
+            await recordEmotionEntry({
+              userId: user.uid,
+              emotion: result.data.emotion,
+              confidence: result.data.confidence,
+              context: 'break',
+              inputText: text
+            });
+
+            // Create break session
+            const breakSessionId = await createBreakSession({
+              userId: user.uid,
+              startTime: new Date(),
+              emotion: result.data.emotion,
+              emotionConfidence: result.data.confidence,
+              activities: result.data.suggestions.activities.map((activity: any) => ({
+                type: activity.type,
+                title: activity.title,
+                duration: activity.duration,
+                completed: false
+              })),
+              affirmation: result.data.suggestions.affirmation,
+              mood: {
+                before: result.data.emotion
+              }
+            });
+
+            // Add session ID to the emotion data
+            result.data.sessionId = breakSessionId;
+          } catch (firebaseError) {
+            console.error('Error saving to Firebase:', firebaseError);
+            // Continue with emotion detection even if Firebase fails
+          }
+        }
+
         onEmotionDetected(result.data);
       } else {
         setError(result.error || 'Failed to analyze emotion');
@@ -112,13 +154,20 @@ const EmotionDetection: React.FC<EmotionDetectionProps> = ({ onEmotionDetected }
           </div>
         </div>
         
-        <h3 className="text-3xl font-serif font-bold text-black/80 mb-4">
+        <h3 className="text-3xl font-serif font-bold bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent mb-4">
           🎤 How Are You Feeling?
         </h3>
         <p className="text-neutral-600 text-lg max-w-2xl mx-auto leading-relaxed">
           Share your current emotional state with me. I'll listen to your voice or you can type how you're feeling, 
           and I'll suggest personalized activities to help you feel your best.
         </p>
+        {!user && (
+          <div className="mt-4 p-3 bg-amber-100/60 backdrop-blur-sm rounded-xl border border-amber-200/50">
+            <p className="text-sm text-amber-700">
+              <strong>Sign in to save your emotional journey</strong> and track your wellness progress over time.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Voice Input Section */}
@@ -140,7 +189,7 @@ const EmotionDetection: React.FC<EmotionDetectionProps> = ({ onEmotionDetected }
             )}
           </button>
           
-          <p className="text-sm text-gray-600 text-center">
+          <p className="text-sm text-neutral-600 text-center">
             {isListening 
               ? "🎙️ Listening... Tell me how you're feeling right now"
               : "Click to start voice emotion detection"
@@ -154,7 +203,7 @@ const EmotionDetection: React.FC<EmotionDetectionProps> = ({ onEmotionDetected }
             value={transcription}
             onChange={(e) => setTranscription(e.target.value)}
             placeholder="Or type how you're feeling... (e.g., 'I'm feeling stressed about my exams' or 'I'm really tired today')"
-            className="w-full px-6 py-4 rounded-2xl border-0 bg-white/50 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-pink-400 focus:outline-none transition-all duration-300 resize-none"
+            className="w-full px-6 py-4 rounded-2xl border-0 bg-white/20 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-pink-400 focus:outline-none transition-all duration-300 resize-none"
             rows={3}
             disabled={isListening || isProcessing}
           />
@@ -215,6 +264,7 @@ const EmotionDetection: React.FC<EmotionDetectionProps> = ({ onEmotionDetected }
             <li>• Mention specific emotions like "stressed", "tired", "happy", etc.</li>
             <li>• Describe what's affecting your mood today</li>
             <li>• The more you share, the better I can help you</li>
+            {user && <li>• Your emotional journey is being saved to help track patterns</li>}
           </ul>
         </div>
       </div>

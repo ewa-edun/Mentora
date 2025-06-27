@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Pause, Timer, Smile, CheckCircle, RotateCcw, Star, Copy, Share2 } from 'lucide-react';
+import { getCurrentUser, updateBreakSession, endBreakSession } from '../../services/firebase';
 
 interface Activity {
   type: string;
@@ -14,6 +15,7 @@ interface BreakSuggestionsProps {
     emotion: string;
     confidence: number;
     message: string;
+    sessionId?: string;
     suggestions: {
       emotion: string;
       activities: Activity[];
@@ -33,9 +35,15 @@ const BreakSuggestions: React.FC<BreakSuggestionsProps> = ({ emotionData }) => {
   const [showInstructions, setShowInstructions] = useState<string | null>(null);
   const [timer, setTimer] = useState<number>(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
-  const { emotion, confidence, message, suggestions } = emotionData;
+  const { emotion, confidence, message, suggestions, sessionId } = emotionData;
   const { activities, affirmation, color_scheme } = suggestions;
+
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
 
   const getEmotionEmoji = (emotion: string) => {
     const emojis = {
@@ -76,13 +84,36 @@ const BreakSuggestions: React.FC<BreakSuggestionsProps> = ({ emotionData }) => {
     setTimer(minutes * 60);
   };
 
-  const handleActivityComplete = (activityType: string) => {
-    setCompletedActivities(prev => new Set([...prev, activityType]));
-    setActiveActivity(null);
-    setIsTimerRunning(false);
-    setShowInstructions(null);
-    setTimer(0);
-  };
+  const handleActivityComplete = React.useCallback(
+    async (activityType: string) => {
+      const newCompletedActivities = new Set([...completedActivities, activityType]);
+      setCompletedActivities(newCompletedActivities);
+      setActiveActivity(null);
+      setIsTimerRunning(false);
+      setShowInstructions(null);
+      setTimer(0);
+
+      // Update Firebase break session if user is signed in and session exists
+      if (user && sessionId) {
+        try {
+          const updatedActivities = activities.map(activity => ({
+            type: activity.type,
+            title: activity.title,
+            duration: activity.duration,
+            completed: newCompletedActivities.has(activity.type),
+            completedAt: newCompletedActivities.has(activity.type) ? new Date() : undefined
+          }));
+
+          await updateBreakSession(sessionId, {
+            activities: updatedActivities
+          });
+        } catch (error) {
+          console.error('Error updating break session:', error);
+        }
+      }
+    },
+    [activities, completedActivities, sessionId, user]
+  );
 
   const handleActivityStop = () => {
     setActiveActivity(null);
@@ -113,6 +144,16 @@ const BreakSuggestions: React.FC<BreakSuggestionsProps> = ({ emotionData }) => {
     }
   };
 
+  const handleEndBreakSession = async (finalMood?: string) => {
+    if (user && sessionId) {
+      try {
+        await endBreakSession(sessionId, user.uid, finalMood);
+      } catch (error) {
+        console.error('Error ending break session:', error);
+      }
+    }
+  };
+
   // Timer effect
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -127,7 +168,7 @@ const BreakSuggestions: React.FC<BreakSuggestionsProps> = ({ emotionData }) => {
       }
     }
     return () => clearInterval(interval);
-  }, [isTimerRunning, timer, activeActivity]);
+  }, [isTimerRunning, timer, activeActivity, handleActivityComplete]);
 
   return (
     <div className="space-y-8">
@@ -158,6 +199,13 @@ const BreakSuggestions: React.FC<BreakSuggestionsProps> = ({ emotionData }) => {
         <p className="text-neutral-600 text-lg max-w-3xl mx-auto leading-relaxed">
           {message}
         </p>
+        {user && sessionId && (
+          <div className="mt-4 p-3 bg-green-100/60 backdrop-blur-sm rounded-xl border border-green-200/50">
+            <p className="text-sm text-green-700">
+              ✅ Your wellness session is being tracked to help you understand your emotional patterns.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Progress Bar */}
@@ -302,17 +350,38 @@ const BreakSuggestions: React.FC<BreakSuggestionsProps> = ({ emotionData }) => {
         </blockquote>
         <button
           onClick={copyAffirmation}
-          className="flex items-center gap-2 mx-auto text-primary-600 hover:text-primary-700 transition-colors"
+          className="flex items-center gap-2 mx-auto text-pink-600 hover:text-pink-700 transition-colors"
         >
           <Copy className="w-4 h-4" />
           <span className="text-sm">Copy affirmation</span>
         </button>
       </div>
 
+      {/* Session End Options */}
+      {completedActivities.size > 0 && (
+        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 text-center">
+          <h4 className="text-lg font-serif font-bold text-neutral-800 mb-4">How are you feeling now?</h4>
+          <div className="flex flex-wrap justify-center gap-3 mb-6">
+            {['much better', 'better', 'same', 'refreshed', 'calm', 'energized'].map((mood) => (
+              <button
+                key={mood}
+                onClick={() => handleEndBreakSession(mood)}
+                className="px-4 py-2 bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+              >
+                {mood}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Reset Button */}
       <div className="text-center">
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            handleEndBreakSession();
+            window.location.reload();
+          }}
           className="flex items-center gap-2 mx-auto px-6 py-3 bg-neutral-200/80 hover:bg-neutral-300/80 rounded-xl transition-colors text-neutral-700"
         >
           <RotateCcw className="w-4 h-4" />

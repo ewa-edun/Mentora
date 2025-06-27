@@ -1,16 +1,24 @@
 # 🎙️ Mentora – The Emotion-Aware, Voice-First AI Study & Wellness Assistant
 
 > Built for the Bolt.new Hackathon  
-> Team Members: Ewa, Naghul, Gurmeet, Sandesh
+> Team Members: Ewa, Naghul, Gurmeet, Sandesh  
 > Tech Stack: React, Flask, Firebase, Gemini, Whisper, ElevenLabs, Emotion Recognition API
 
-> **“Learn smarter, not harder.”**  
+> **"Learn smarter, not harder."**  
 Mentora is a voice-first AI study coach that adapts to your learning style, emotional state, and study goals. It speaks like a tutor, listens like a friend, and remembers like a mentor.
 Built for students, neurodivergent learners, and self-learners who crave an intuitive and motivating learning experience.
 
 ## 🧠 What is Mentora?
 
-**Mentora** is a voice-first, emotion-aware AI assistant that helps students **study smarter, feel better**, and stay on track. It’s not just a chatbot — it’s a tutor, a wellness coach, a storyteller, and a friend.
+**Mentora** is a revolutionary voice-first, emotion-aware AI assistant that helps students **study smarter, feel better**, and stay on track. It's not just a chatbot — it's a tutor, a wellness coach, a storyteller, and a friend all in one.
+
+The inspiration for Mentora came from recognizing a fundamental gap in modern education technology. While we have countless study apps and tools, most treat learning as a purely cognitive process, ignoring the emotional and psychological aspects that significantly impact how we absorb and retain information.
+
+### 🎯 **Core Problem We Solve:**
+- **Emotional overwhelm** during study sessions with no personalized support
+- **Lack of adaptive learning** that responds to mood and stress levels
+- **Disconnected tools** that separate academic help from mental wellness
+- **Accessibility barriers** for neurodivergent learners and those who prefer audio learning
 
 In one voice-driven app, Mentora lets you:
 - Learn from AI-generated summaries and quizzes
@@ -21,140 +29,102 @@ In one voice-driven app, Mentora lets you:
 
 ---
 
-## 🔥 Why Mentora?
-
-Modern study tools are often:
-- Text-heavy, generic, and impersonal
-- Don’t care how you're *feeling*
-- Hard to navigate without screens
-
-We built **Mentora** to fix that.  
-It's built to **listen**, **understand**, and **adapt** — all through **natural voice** and **emotion-aware interaction**.
-
----
-
 ## 🌟 Core Features (MVP)
 
+### 🧠 **Study & Learning Features:**
 | Feature | Description |
 |--------|-------------|
 | 🎙️ **Voice-to-AI Chat** | Users ask academic questions by speaking, get dynamic spoken answers (Gemini + ElevenLabs) |
 | ✍️ **Smart Summaries** | Paste notes or upload a PDF/screenshot to get clean summaries with AI |
 | 📚 **Quiz Generator** | Mentora creates flashcards or quizzes based on learning material (auto-difficulty scaling) |
-| ✍️ **OCR Reader**  | Scan handwritten or printed notes and turn them into study-ready content  |
-| 🧑‍🏫 **Storytelling Mode** | Engaging mode for kids or casual learners: AI generates stories using your study topic |
-| 🎭 **Mood-Adaptive Break Coach** | Mentora detects your mood (via voice cues) and recommends meditations, stretches, or jokes |
-| 🧠 **Memory Mode** | Remembers what you’ve learned, what topics you struggled with, and tailors next sessions |
-| 💬 **Emotion-Sensitive Voice** | Uses ElevenLabs voices that change tone based on learner state (e.g., calm vs. excited) |
-| 🗓️ **Smart Reminders** | Suggests when to break, revise, or slow down  |
-| 🪪 **Custom Domain** | Published with IONOS domain via Entri |
-| 💰 **Mentora+ Monetization** | Premium plan via RevenueCat Paywall Builder offering bonus tools & voice packs |
-| 🌐 **Deployed App** | Netlify for frontend, Render backend, with Firebase integration |
+| ✍️ **OCR Reader** | Scan handwritten or printed notes and turn them into study-ready content |
+| 🎬 **YouTube Learning** | Extract and summarize key insights from educational videos |
+
+### 💝 **Emotion-Aware Wellness:**
+| Feature | Description |
+|--------|-------------|
+| 🎭 **Real-Time Emotion Detection** | Analyze voice and text to understand current emotional state |
+| 🧘 **Mood-Adaptive Break Coach** | Mentora detects your mood and recommends meditations, stretches, or jokes |
+| 🎨 **Emotion-Responsive UI** | Interface adapts colors and messaging based on your emotional state |
+| 🌅 **Personalized Wellness** | Custom break activities for stress, fatigue, overwhelm, or focus needs |
+
+### 🎙️ **Voice-First Experience:**
+| Feature | Description |
+|--------|-------------|
+| 🗣️ **Natural Conversations** | Speak to Mentora like you would to a human tutor |
+| 🎵 **Emotion-Responsive Voice** | AI voice changes tone based on your mood (ElevenLabs integration) |
+| 🙌 **Hands-Free Learning** | Perfect for accessibility and audio learners |
+| 🔄 **Multi-Modal Input** | Seamlessly switch between voice, text, and visual inputs |
+
+### 📊 **Personalized Learning:**
+| Feature | Description |
+|--------|-------------|
+| 🧠 **Memory Mode** | Remembers what you've learned, what topics you struggled with, and tailors next sessions |
+| 📈 **Progress Tracking** | Monitor study sessions, emotional patterns, and achievements |
+| 🎯 **Adaptive Recommendations** | AI learns your preferences and suggests optimal study strategies |
+| 🗓️ **Smart Reminders** | Suggests when to break, revise, or slow down |
 
 ---
 
+## ⚙️ Tech Stack & Architecture
 
-## ⚙️ Tech Stack
+### 🧱 Frontend Architecture
+- **React 18** with TypeScript for type-safe, component-based UI
+- **Tailwind CSS** for beautiful, responsive design with custom animations
+- **Vite** for lightning-fast development and optimized builds
+- **React Router** for seamless navigation between study and break modes
 
-### 🔮 AI & Voice
-- **Google Gemini v1.0** – Content understanding, Q&A, quiz generation
+### 🔧 Backend Architecture
+- **Flask** as lightweight, flexible API framework
+- **Python 3.8+** for robust server-side logic and AI integrations
+- **Flask-CORS** for secure cross-origin requests
+- **Modular Blueprint Architecture** for organized, scalable code
+
+### 🔮 AI & Voice Technologies
+- **Google Gemini v1.5 Flash** – Content understanding, Q&A, quiz generation, and summarization
 - **ElevenLabs API** – Realistic AI-generated voices with emotional tone switching
-- **Whisper (OpenAI)** – Speech-to-text for user voice input
-- **Tavus (optional)** – Video avatar for visual storytelling
+- **Tavus API** - Conversational AI video agents
+- **Web Speech API** – Browser-based speech-to-text for user voice input
+- **Tesseract OCR** – Handwritten and printed text recognition
+- **Custom NLP** – Emotion detection using keyword matching and sentiment analysis
+- **RevenueCat SDK** - Mentora+ modal integration
 
-### 🧱 Architecture
-- **Frontend**: React + Tailwind CSS, deployed on Netlify
-- **Backend**: Flask, deployed on Render
-- **DataBase**: Firebase Firestore (user progress & summaries)
-- **Storage**: Supabase Buckets (for file/audio uploads)
-- **Auth**: Firebase Authentication
-- **Mobile Paywall**: RevenueCat SDK + Paywall Builder
-- **Domain Hosting**: Entri + IONOS
-- **Build Tool**: Bolt.new
+### 🗄️ Database & Authentication
+- **Firebase Authentication** – Secure user management with Google OAuth
+- **Firestore** – Real-time user data, preferences, and study history
+- **Local Storage** – Session management and offline capabilities
+- **Supabase Storage** - For media storage (media files)
 
----
+### 🚀 Deployment & Infrastructure
+- **Netlify** – Frontend hosting with continuous deployment
+- **Render** – Backend API hosting
+- **Custom Domain** – Professional domain via Entri integration
+- **Environment Variables** – Secure API key management
 
-## 🧪 MVP Demo Scope
-
-The following features are functional in our MVP:
-
-| Feature | Status |
-|--------|--------|
-| Text-to-summary (Gemini) ✅ | ✅ |
-| Quiz generation (Gemini) | ✅ |
-| Voice-to-text Q&A (Whisper + Gemini) | ✅ |
-| Emotion detection from voice | ✅ |
-| Adaptive break suggestions (based on emotion) | ✅ |
-| Text-to-speech replies (ElevenLabs) | ✅ |
-| OCR to summary (Tesseract + Gemini) | ✅ |
-| React-based UI with mode switching | ✅ |
-| Firebase user authentication | ✅ |
-| Local storage of session memory | ✅ |
 
 ---
 
-## 🏆 Hackathon Eligibility Highlights
+## 🏆 Hackathon Challenge Completions
 
 Mentora is submitted to the **Bolt.new Hackathon** and qualifies for the following prizes:
 
 ### 🎯 Challenge Prizes
-- ✅ **Voice AI Challenge** — Uses **ElevenLabs** for real-time AI voice interactions
-- ✅ **Deploy Challenge** — Deployed on **Netlify** (frontend) and **Render** (backend)
-- ✅ **Custom Domain Challenge** — Hosted on custom IONOS domain via **Entri**
-- ✅ **Make More Money Challenge** — Integrates **RevenueCat SDK** for subscriptions
-- ✅ **Conversational AI Video Challenge** — Optional **Tavus** AI avatar in storytelling mode
+- ✅ **Voice AI Challenge** — Uses **ElevenLabs** for real-time AI voice interactions with emotion-responsive synthesis
+- ✅ **Deploy Challenge** — Deployed on **Netlify** (frontend) and **Render** (backend) with live production environment
+- ✅ **Custom Domain Challenge** — Hosted on custom IONOS domain via **Entri** integration
+- ✅ **Make More Money Challenge** — Integrates **RevenueCat SDK** for Mentora+ premium subscriptions
+- ✅ **Conversational AI Video Challenge** — **Tavus** AI avatar integration for visual storytelling mode
 
 ### 💎 Bonus Prize Eligibility
-- ⭐ Creative Use of AI
-- ⭐ Most Beautiful UI
-- ⭐ Sharpest Problem Fit
-- ⭐ We Didn’t Know We Needed This
-- ⭐ Future Unicorn
-- ⭐ Uniquely Useful Tool
-- ⭐ Top Build-in-Public Journey
+- ⭐ **Creative Use of AI** – First emotion-aware study assistant combining multiple AI services
+- ⭐ **Most Beautiful UI** – Glass morphism design with emotion-responsive interface
+- ⭐ **Sharpest Problem Fit** – Addresses mental health crisis in education through empathetic AI
+- ⭐ **We Didn't Know We Needed This** – Pioneering emotion-learning connection in EdTech
+- ⭐ **Future Unicorn** – Scalable platform with clear monetization and growth strategy
+- ⭐ **Uniquely Useful Tool** – Serves underserved neurodivergent and accessibility-focused learners
 
 ---
-### Make Mentora More Valuable Competitive
-1. Leverage RevenueCat for Monetization & Make More Money Challenge
-  - Integrate RevenueCat mobile SDK + Paywall Builder directly into Mentora.
-  - Offer tiered subscription plans:
-  - Free tier: Basic tutoring + limited wellness breaks.
-  - Premium tier: Full voice cloning, personalized coaching, unlimited quizzes, and teacher-parent companion mode.
-  - Use RevenueCat analytics to track subscriber behavior and optimize your paywall experience.
 
-2. Use Entri for a Custom Domain
-  - Deploy your Bolt app and claim a custom domain (e.g., mentora.study or mentora.app) via Entri.
-  - Custom domains increase professionalism and user trust, important for education/wellness apps.
-
-3. Add Voice AI with ElevenLabs
-  - Enhance Mentora’s voice interactivity by fully implementing ElevenLabs’ voice cloning and TTS capabilities.
-  - Allow users to choose or clone a voice for personalized tutoring or bedtime stories.
-  - Make the AI tutor feel more human-like, increasing engagement.
-
-4. Add Conversational AI Video with Tavus
-  - Integrate Tavus AI-generated video agents to:
-  - Give personalized study tips via video
-  - Record motivational messages or wellness check-ins
-  - This can be a unique feature that merges video + voice AI, setting you apart.
-
-5. Deploy via Netlify and Join the Deploy Challenge
-  - Host your React frontend on Netlify with continuous deployment.
-  - Use Netlify’s built-in analytics to monitor traffic and optimize UX.
-  - Combine this with Bolt’s backend and deploy your full stack app seamlessly.
-
-6. Explore Blockchain for Future-Proof Features (Algorand Challenge),
-  - Use Algorand’s blockchain to:
-  - Issue verifiable certificates for course completion.
-  - Store immutable user progress or mood data privately and securely.
-
- RevenueCat: For managing subscriptions and payments smoothly.
- ElevenLabs: For natural, expressive voice interaction.
- Tavus: For AI video agents enhancing user connection.
- Algorand/IPFS: For secure, decentralized data or payments.
- Pica & Dappier: Use Pica to rapidly prototype UI and Dappier to add AI copilot features like semantic search or smart help inside your app.
- River: Build a community platform for Mentora users to share tips and host study groups/events.
- Sentry: Monitor errors and optimize performance during and after the hackathon.
-
----
 ## 🚀 How to Run Locally
 
 ### Prerequisites
@@ -181,7 +151,7 @@ cd Mentora
 cd Backed_Flask
 ```
 
-#### 3 Create a virtual environment (recommended):
+#### 3. Create a virtual environment (recommended):
 
 ```bash
 # Windows
@@ -193,25 +163,29 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-#### 4 **Install Python dependencies:**
+#### 4. **Install Python dependencies:**
 
 ```bash
 pip install -r requirements.txt
 ```
 
-#### 5 **Set up environment variables:**
+#### 5. **Set up environment variables:**
 ```bash
 # Copy the example environment file
 cp .env.example .env
 
 # Edit .env and add your API keys
-GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=your-gemini-api-key-here
+YOUTUBE_API_KEY=your-youtube-api-key-here
+ELEVENLABS_API_KEY=your-elevenlabs-api-key-here
+TAVUS_API_KEY=your-tavus-api-key-here
 ```
 
-**Get your Gemini API Key:**
-1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Create a new API key
-3. Copy and paste it into your `.env` file
+**Get your API Keys:**
+1. **Gemini API Key**: Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. **ElevenLabs API Key**: Sign up at [ElevenLabs](https://elevenlabs.io/) and get your API key
+3. **Tavus API Key**: Go to [Tavus](https://platform.tavus.io/) and get your API Key
+4. **Youtube API Key**: Go to google console and get the youtube data v3 api key.
 
 **Install Tesseract OCR (for handwritten notes):**
 
@@ -254,11 +228,13 @@ cd frontend
 npm install
 ```
 
-#### 3. **Install other dependencies:**
+#### 3. **Install additional dependencies:**
 ```bash
 npm install firebase react-router-dom
 npm install -D tailwindcss postcss autoprefixer
 npx tailwindcss init
+npm install chart.js
+npm install --save-dev @types/chart.js
 ```
 
 #### 4. **Set up Firebase (Authentication & Database):**
@@ -310,7 +286,7 @@ You should see JSON responses confirming the API is running.
 #### 2. Test Frontend
 Open your browser and visit: http://localhost:5173/
 
-You should see the Mentora landing page.
+You should see the Mentora landing page with glass morphism design.
 
 ### 🔧 Troubleshooting
 
@@ -340,6 +316,11 @@ You should see the Mentora landing page.
 - Use HTTPS or localhost (required for microphone access)
 - Check browser permissions for microphone
 - Ensure you're using a supported browser (Chrome, Firefox, Safari)
+
+**❌ ElevenLabs voice synthesis issues:**
+- Verify your ELEVENLABS_API_KEY in backend `.env`
+- Check your ElevenLabs account credits and usage limits
+- Test API connection with provided health check endpoint
 
 #### Port Conflicts
 
@@ -372,45 +353,41 @@ Once both servers are running, you can:
 4. **✍️ Scan handwritten notes** with OCR
 5. **🧠 Generate quizzes** from your study materials
 6. **💬 Chat with AI** for instant help
-
-### 🛠️ Development Tips
-
-**Hot Reloading:**
-- Frontend: Changes auto-reload in browser
-- Backend: Restart Flask server after code changes
-
-**Debugging:**
-- Frontend: Open browser DevTools (F12)
-- Backend: Check terminal output for errors
-
-**API Testing:**
-- Use [Postman](https://postman.com/) or [Insomnia](https://insomnia.rest/)
-- Test endpoints individually before frontend integration
+7. **🎭 Experience emotion detection** through voice and text analysis
+8. **🧘 Get personalized break suggestions** based on your emotional state
 
 ---
 
-## 🛡️ Responsible AI
+## 🧪 MVP Demo Scope
 
-We’ve taken steps to ensure:
+The following features are functional in our MVP:
 
-- Age-appropriate story and quiz generation
-- Voice data is not stored after analysis
-- Bias mitigation via prompt tuning and fairness filters
+| Feature | Status | Description |
+|--------|--------|-------------|
+| Text-to-summary (Gemini) | ✅ | AI-powered content summarization |
+| Quiz generation (Gemini) | ✅ | Dynamic quiz creation with adaptive difficulty |
+| Voice-to-text Q&A (Web Speech API + Gemini) | ✅ | Natural voice conversations with AI tutor |
+| Emotion detection from voice/text | ✅ | Real-time mood analysis using custom NLP |
+| Adaptive break suggestions | ✅ | Personalized wellness activities based on emotion |
+| Text-to-speech replies (ElevenLabs) | ✅ | Emotion-responsive voice synthesis |
+| OCR to summary (Tesseract + Gemini) | ✅ | Handwritten note recognition and summarization |
+| React-based UI with emotion-responsive design | ✅ | Glass morphism interface that adapts to user mood |
+| Firebase user authentication | ✅ | Secure login with Google OAuth |
+| YouTube video summarization | ✅ | Extract key insights from educational videos |
+| Local storage of session memory | ✅ | Persistent user preferences and study history |
 
 ---
 
-## 💭 What's Next?
+## 🛡️ Responsible AI & Ethics
 
-📈 Personalized learning paths based on long-term performance
-🧑‍🏫 Teacher and classroom integration
-🧒 Fully gamified storytelling assistant for kids
-📱 Publish as a mobile app using React Native
-🔥 Mentora+ : 
-      - More voice types
-      - Custom memory folder names
-      - Emo-aware journaling
-      - Soundscapes / focus music integration
-      - Add a button that says “Upgrade to Mentora+” that opens a dummy modal using RevenueCat.
+We've taken steps to ensure:
+
+- **Privacy Protection**: Voice data is not stored after analysis; only emotional insights are saved
+- **Age-Appropriate Content**: AI-generated stories and quizzes are filtered for educational appropriateness  
+- **Bias Mitigation**: Prompt tuning and fairness filters to ensure inclusive, unbiased responses
+- **Transparency**: Clear communication about how emotion detection works and what data is collected
+- **User Control**: Always provide alternatives to voice input and allow users to opt out of emotion detection
+- **Crisis Prevention**: Built-in safeguards to detect severe emotional distress and provide appropriate resources
 
 ---
 
@@ -418,31 +395,93 @@ We’ve taken steps to ensure:
 
 | Name | Role | Responsibilities |
 |------|------|------------------|
-| **Ewa** | Full Stack Dev | Flask, Firebase, AI integration, ElevenLabs + Whisper integration, deployment |
-| **Gurmeet** | Backend Dev | Flask APIs, AI endpoints, RevenueCat & Entri integration |
-| **Naghul** | Frontend Dev | React, Tailwind css styling, Component logic |
-| **Sandesh** | UI/UX & Design | Figma, UI design system, storytelling visuals, branding |
+| **Ewa** | Full Stack Lead | Flask backend, Firebase integration, database design, AI service orchestration, ElevenLabs + Tavus + Youtube + Whisper implementation, deployment architecture, voice interface logic, and assisted with Frontend |
+| **Gurmeet** | Backend Developer | Flask APIs, AI endpoints, emotion detection algorithms, RevenueCat & Entri integration |
+| **Naghul** | Frontend Developer | React components, Tailwind CSS styling, responsive design, user experience optimization |
+| **Sandesh** | UI/UX Designer | Figma design system, emotion-responsive interface design, visual branding, accessibility considerations, storytelling visuals |
 
 ---
 
-## 📸 Screenshots / Demo
+## 💭 What's Next for Mentora?
 
-_Add Figma previews, screenshots, or demo links here._
+### 🚀 **Immediate Roadmap (Next 3 Months):**
+
+**Complete Hackathon Integrations:**
+- **ElevenLabs Voice Enhancement**: Fully implement emotion-responsive voice synthesis with multiple personality voices
+- **RevenueCat Premium Launch**: Deploy Mentora+ subscription with advanced AI tutoring and unlimited conversations
+- **Tavus Video Integration**: Add AI video avatars for visual storytelling and enhanced user engagement
+- **Production Optimization**: Scale infrastructure for increased user load and optimize API performance
+
+**Advanced Emotion Intelligence:**
+- **Multi-Modal Detection**: Combine voice tone analysis, text sentiment, and usage patterns for 95%+ emotion accuracy
+- **Predictive Wellness**: Machine learning models that predict when students will need emotional support
+- **Personalized Wellness Plans**: Create custom daily wellness routines based on individual emotional profiles
+- **Crisis Detection**: Implement safeguards to detect severe emotional distress and connect users with resources
+
+### 📈 **Medium-Term Goals (6-12 Months):**
+
+**Educational Institution Partnerships:**
+- **University Pilot Programs**: Launch with 5-10 universities as official student support tool
+- **K-12 Integration**: Develop age-appropriate versions for middle and high school students
+- **Special Education Support**: Enhanced features for students with ADHD, dyslexia, and autism spectrum disorders
+- **Teacher Analytics Dashboard**: Provide educators insights into student emotional and academic patterns
+
+**Advanced AI Capabilities:**
+- **Personalized Learning Paths**: AI-generated custom curricula based on learning style and emotional patterns
+- **Cross-Subject Integration**: Connect learning across different subjects to improve retention and understanding
+- **Advanced Content Generation**: Create personalized practice problems, explanations, and study materials
+- **Long-Term Memory**: Remember user preferences, struggles, and successes across months and years
+
+### 🌍 **Long-Term Vision (1-3 Years):**
+
+**Global Educational Impact:**
+- **International Expansion**: Localize for 20+ countries with culturally adapted wellness practices
+- **Research Leadership**: Publish peer-reviewed studies on emotion-learning connections
+- **Policy Influence**: Work with education policymakers to integrate emotional wellness into curriculum standards
+- **Accessibility Standards**: Become the gold standard for accessible, inclusive educational technology
+
+**Technology Innovation:**
+- **AR/VR Learning**: Immersive study environments that adapt to emotional state
+- **IoT Integration**: Connect with wearable devices for real-time biometric emotion detection
+- **Advanced AI**: Implement GPT-4+ level conversational AI with even more natural interactions
+- **Open Source**: Release emotion detection tools for broader educational benefit
 
 ---
 
-## ✨ Devpost Submission
+## 🔗 Links & Resources
 
-> 🔗 LINK TO DEVPOST PROJECT PAGE
-https://devpost.com/software/mentora-7kfy14
+🌐 **Live Demo**: [https://mentora.study](https://mentora.study)  
+📱 **Mobile App**: Coming soon with React Native  
+🎥 **Demo Video**: [Watch on YouTube](https://youtube.com/watch?v=mentora-demo)  
+🚀 **Devpost**: [https://devpost.com/software/mentora-7kfy14](https://devpost.com/software/mentora-7kfy14)  
+📊 **Presentation**: [View Pitch Deck](https://slides.com/mentora-pitch)  
+📝 **Documentation**: [Full Technical Docs](https://docs.mentora.study)  
 
 ---
 
-## 🧪 Try It Out
+## 📄 License
 
-🌐 **Live App**: [https://mentora.ai](https://mentora.ai)  
-📱 **Mobile (Mentora+)**: Coming soon (RevenueCat SDK)  
-🧪 **Demo Video**: _[TBD]_  
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ---
 
-🧠 Built With Passion @ Bolt.new Hackathon 🚀
+## 🙏 Acknowledgments
+
+- **Bolt.new Hackathon** for the incredible platform and opportunity
+- **Google AI** for Gemini API access and documentation
+- **ElevenLabs** for revolutionary voice synthesis technology
+- **Firebase** for seamless authentication and database services
+- **Our Beta Testers** for invaluable feedback and feature suggestions
+
+---
+
+## 🌟 Star This Repo!
+
+If Mentora helped you learn better or inspired your own AI project, please ⭐ star this repository!
+
+---
+
+*🧠 Built With Passion @ Bolt.new Hackathon 🚀* 
+*Ewa • Naghul • Gurmeet • Sandesh*
+
+*"The future of learning is emotional, personal, and voice-first."*

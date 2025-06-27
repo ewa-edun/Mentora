@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Send, Loader2, Brain, Sparkles,MessageCircle, Copy, CheckCircle, Settings, Heart, Star, Trash2, Download, Share2, Pause, Play, Square } from 'lucide-react';
+import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Send, Loader2, Brain, Sparkles,MessageCircle,Copy,CheckCircle,Settings,Heart,Star,Trash2,Download,Share2,Pause,Play,Square,Clock,History} from 'lucide-react';
 import { askQuestion } from '../services/api';
-import { getCurrentUser } from '../services/firebase';
+import { getCurrentUser, createVoiceChat, updateVoiceChat, getUserVoiceChats, VoiceChat,serverTimestamp } from '../services/firebase';
 
 interface Message {
   id: string;
@@ -10,7 +10,7 @@ interface Message {
   content: string;
   timestamp: Date;
   isVoice?: boolean;
-  emotion?: 'happy' | 'neutral' | 'excited' | 'thoughtful';
+  emotion?: string;
 }
 
 const VoicePage: React.FC = () => {
@@ -22,11 +22,16 @@ const VoicePage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState('');
+  const [savedChatId, setSavedChatId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [voiceSpeed, setVoiceSpeed] = useState(0.9);
   const [voicePitch, setVoicePitch] = useState(1);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [recentChats, setRecentChats] = useState<VoiceChat[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -41,6 +46,7 @@ const VoicePage: React.FC = () => {
       return;
     }
     setUser(currentUser);
+    loadRecentChats(currentUser.uid);
 
     // Initialize speech synthesis
     if ('speechSynthesis' in window) {
@@ -86,6 +92,124 @@ const VoicePage: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  const loadRecentChats = async (userId: string) => {
+    try {
+      const chats = await getUserVoiceChats(userId, 5);
+      setRecentChats(chats);
+    } catch (error) {
+      console.error('Error loading recent chats:', error);
+    }
+  };
+
+  const startNewChat = () => {
+    if (messages.length > 0) {
+      saveCurrentChat();
+    }
+    setMessages([]);
+    setCurrentChatId(null);
+    setSessionStartTime(new Date());
+    setError('');
+  };
+
+  const saveCurrentChat = async () => {
+    if (!user || messages.length === 0) return;
+
+    try {
+      const chatData = {
+        userId: user.uid,
+        messages: messages.map(msg => ({
+          id: msg.id,
+          type: msg.type,
+          content: msg.content,
+          timestamp:
+            msg.timestamp instanceof Date && !isNaN(msg.timestamp.getTime())
+               ? msg.timestamp
+               : new Date(),
+         ...(msg.isVoice !== undefined && { isVoice: msg.isVoice }),
+        ...(msg.emotion !== undefined && { emotion: msg.emotion }),
+        })),
+        startTime:
+          sessionStartTime instanceof Date && !isNaN(sessionStartTime.getTime())
+           ? sessionStartTime
+           : serverTimestamp(),
+        endTime: serverTimestamp(),
+        duration: sessionStartTime ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000) : 0,
+        totalMessages: messages.length,
+       ...(extractTopicsFromMessages(messages).length > 0 && { topics: extractTopicsFromMessages(messages) }),
+       ...(generateChatSummary(messages) && { summary: generateChatSummary(messages) }),
+      };
+
+       let chatId = currentChatId;
+    if (currentChatId) {
+      await updateVoiceChat(currentChatId, chatData);
+    } else {
+      chatId = await createVoiceChat(chatData);
+      setCurrentChatId(chatId);
+    }
+
+    setSavedChatId(chatId || null); // <-- Mark as saved
+
+      // Reload recent chats
+      await loadRecentChats(user.uid);
+    } catch (error) {
+      console.error('Error saving chat:', error);
+    }
+  };
+
+  const loadChat = (chat: VoiceChat) => {
+    if (messages.length > 0) {
+      saveCurrentChat();
+    }
+
+    const loadedMessages: Message[] = chat.messages.map(msg => ({
+      id: msg.id,
+      type: msg.type,
+      content: msg.content,
+      timestamp:
+        msg.timestamp instanceof Date && !isNaN(msg.timestamp.getTime())
+          ? msg.timestamp
+          : (msg.timestamp && typeof (msg.timestamp as any).toDate === 'function'
+              ? (msg.timestamp as any).toDate()
+              : new Date()),
+      isVoice: msg.isVoice,
+      emotion: msg.emotion
+    }));
+
+    setMessages(loadedMessages);
+    setCurrentChatId(chat.id || null);
+    setSessionStartTime(chat.startTime instanceof Date ? chat.startTime : new Date(chat.startTime?.toString() || Date.now()));
+    setShowHistory(false);
+  };
+
+  const extractTopicsFromMessages = (messages: Message[]): string[] => {
+    // Simple topic extraction - in a future version, you'd use NLP
+    const topics: string[] = [];
+    const keywords = ['math', 'science', 'history', 'english', 'physics', 'chemistry', 'biology', 'literature', 'programming', 'coding'];
+    
+    messages.forEach(msg => {
+      keywords.forEach(keyword => {
+        if (msg.content.toLowerCase().includes(keyword) && !topics.includes(keyword)) {
+          topics.push(keyword);
+        }
+      });
+    });
+    
+    return topics.slice(0, 5); // Limit to 5 topics
+  };
+
+  const generateChatSummary = (messages: Message[]): string => {
+    if (messages.length === 0) return '';
+    
+    const userMessages = messages.filter(msg => msg.type === 'user');
+    const topics = extractTopicsFromMessages(messages);
+    
+    if (topics.length > 0) {
+      return `Discussion about ${topics.join(', ')} with ${userMessages.length} questions asked.`;
+    }
+    
+    return `General conversation with ${userMessages.length} questions and responses.`;
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -95,7 +219,6 @@ const VoicePage: React.FC = () => {
       setError('Voice recognition not supported in this browser');
       return;
     }
-
     setIsListening(true);
     setError('');
     recognitionRef.current.start();
@@ -162,6 +285,11 @@ const VoicePage: React.FC = () => {
     const messageContent = content || textInput.trim();
     if (!messageContent) return;
 
+    // Start new session if this is the first message
+    if (messages.length === 0 && !sessionStartTime) {
+      setSessionStartTime(new Date());
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
@@ -175,9 +303,11 @@ const VoicePage: React.FC = () => {
     setTextInput('');
     setIsProcessing(true);
     setError('');
+    console.log('Calling askQuestion with:', messageContent); 
 
     try {
       const result = await askQuestion(messageContent);
+      console.log('askQuestion result:', result);
       
       if (result.success && result.data) {
         const assistantMessage: Message = {
@@ -197,7 +327,8 @@ const VoicePage: React.FC = () => {
       } else {
         setError(result.error || 'Failed to get response');
       }
-    } catch {
+    } catch (err) {
+      console.error('askQuestion threw:', err);
       setError('Failed to send message');
     } finally {
       setIsProcessing(false);
@@ -245,7 +376,12 @@ const VoicePage: React.FC = () => {
   };
 
   const clearConversation = () => {
+    if (messages.length > 0) {
+      saveCurrentChat();
+    }
     setMessages([]);
+    setCurrentChatId(null);
+    setSessionStartTime(null);
     setError('');
     stopSpeaking();
   };
@@ -265,6 +401,28 @@ const VoicePage: React.FC = () => {
     }
   };
 
+  const formatChatTime = (timestamp: any) => {
+    if (!timestamp) return '';
+    
+    let date;
+    if (timestamp.toDate) {
+      date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
+    } else if (timestamp.seconds) {
+      date = new Date(timestamp.seconds * 1000);
+    } else {
+      return '';
+    }
+    
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+    // For Mentora's chat bubble color (thinking and answered)
+  const mentoraBubbleColor = isProcessing
+    ? 'bg-gradient-to-r from-blue-100 via-indigo-100 to-white border-blue-200'
+    : 'bg-gradient-to-r from-indigo-50 via-white to-blue-50 border-indigo-100';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 relative overflow-hidden">
       {/* Animated background elements - consistent with app */}
@@ -276,7 +434,7 @@ const VoicePage: React.FC = () => {
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Header*/}
+        {/* Header - consistent with app styling */}
         <header className="backdrop-blur-xl glass-card bg-white/20 border-b border-white/30 px-6 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -285,12 +443,12 @@ const VoicePage: React.FC = () => {
                 className="flex items-center gap-3 text-primary-600 hover:text-primary-700 transition-colors group"
               >
                 <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                <span className="font-medium">Back to Dashboard</span>
+                <span className="font-medium">Back to Home</span>
               </Link>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 backdrop-blur-xl bg-gradient-to-br from-lavender-400 to-indigo-500 rounded-2xl border-white/20 rounded-2xl px-6 py-3">
+              <div className="flex items-center gap-3 backdrop-blur-xl bg-gradient-to-br from-lavender-400 to-indigo-500 rounded-2xl border-white/20 rounded-2xl px-6 py-3 shadow-lg hover:shadow-xl transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center glow-primary animate-float">
                   <Brain className="w-6 h-6 text-white" />
                 </div>
@@ -298,15 +456,22 @@ const VoicePage: React.FC = () => {
                   <h1 className="text-xl font-serif font-bold bg-clip-text text-white">
                     Voice Assistant
                   </h1>
-                  <p className="text-sm text-gray-800">Chat with Mentora AI</p>
+                  <p className="text-sm text-grey-800">Chat with Mentora AI</p>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
               <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="p-3 rounded-xl backdrop-blur-xl bg-white/30 border border-white/40 text-neutral-700 hover:text-neutral-800 hover:bg-white/40 transition-all duration-300"
+              >
+                <History className="w-5 h-5" />
+              </button>
+
+              <button
                 onClick={() => setShowSettings(!showSettings)}
-                className="p-3 rounded-xl backdrop-blur-xl bg-white/30 border border-white/40 text-neutral-700 hover:text-neutral-800 hover:bg-white/30 transition-all duration-300"
+                className="p-3 rounded-xl backdrop-blur-xl bg-black-200 border border-black-300 text-neutral-700 hover:text-neutral-800 hover:bg-black-300 transition-all duration-300"
               >
                 <Settings className="w-5 h-5" />
               </button>
@@ -326,7 +491,7 @@ const VoicePage: React.FC = () => {
                 <>
                   <button
                     onClick={handleDownload}
-                    className="p-3 rounded-xl backdrop-blur-xl bg-black/10 border border-black/20 text-neutral-700 hover:text-neutral-800 hover:bg-black/20 transition-all duration-300"
+                    className="p-3 rounded-xl backdrop-blur-xl bg-grey-200/20 border border-grey-300/30 text-neutral-700 hover:text-neutral-800 hover:bg-grey-300/30 transition-all duration-300"
                   >
                     <Download className="w-5 h-5" />
                   </button>
@@ -341,6 +506,63 @@ const VoicePage: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* Chat History Panel */}
+          {showHistory && (
+            <div className="max-w-6xl mx-auto mt-4 p-6 backdrop-blur-xl bg-white/20 border border-white/30 rounded-2xl shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-serif font-bold text-neutral-800">Recent Conversations</h3>
+                <button
+                  onClick={startNewChat}
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-xl font-medium hover:shadow-lg transition-all duration-300"
+                >
+                  New Chat
+                </button>
+              </div>
+              
+              {recentChats.length > 0 ? (
+                <div className="space-y-3">
+                  {recentChats.map((chat, index) => (
+                    <div
+                      key={chat.id || index}
+                      onClick={() => loadChat(chat)}
+                      className="p-4 bg-white/30 rounded-xl border border-white/40 hover:bg-white/40 cursor-pointer transition-all duration-300"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium text-neutral-800 truncate">
+                            {chat.summary || 'Conversation'}
+                          </p>
+                          <div className="flex items-center gap-4 text-sm text-neutral-600 mt-1">
+                            <span className="flex items-center gap-1">
+                              <MessageCircle className="w-4 h-4" />
+                              {chat.totalMessages} messages
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              {Math.floor((chat.duration || 0) / 60)}m
+                            </span>
+                            <span>{formatChatTime(chat.createdAt)}</span>
+                          </div>
+                          {chat.topics && chat.topics.length > 0 && (
+                            <div className="flex gap-2 mt-2">
+                              {chat.topics.slice(0, 3).map((topic, i) => (
+                                <span key={i} className="bg-purple-100/60 text-purple-700 px-2 py-1 rounded-lg text-xs">
+                                  {topic}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-neutral-600 text-center py-8">No recent conversations found. Start a new chat!</p>
+              )}
+            </div>
+          )}
 
           {/* Settings Panel */}
           {showSettings && (
@@ -387,8 +609,8 @@ const VoicePage: React.FC = () => {
             {messages.length === 0 && (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center max-w-3xl">
-                  <div className="relative mb-6">
-                    <div className="w-24 h-24 bg-gradient-to-r from-lavender-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto glow-primary animate-float">
+                  <div className="relative mb-8">
+                    <div className="w-24 h-24 bg-gradient-to-r from-lavender-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto glow-lavender animate-float">
                       <MessageCircle className="w-12 h-12 text-white" />
                     </div>
                     <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
@@ -407,7 +629,7 @@ const VoicePage: React.FC = () => {
                     Ask me anything or just start a conversation!
                   </p>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mb-5">
                     <div className="backdrop-blur-xl bg-white/40 border border-white/20 rounded-2xl p-6 hover:bg-white/70 hover:border-white/30 transition-all duration-300 group">
                       <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Mic className="w-6 h-6 text-white" />
@@ -415,7 +637,7 @@ const VoicePage: React.FC = () => {
                       <h3 className="font-serif font-bold text-neutral-800 mb-2">🎙️ Voice Magic</h3>
                       <p className="text-sm text-neutral-600">Speak naturally and I'll understand. Click the mic to start!</p>
                     </div>
-
+                    
                     <div className="backdrop-blur-xl bg-white/40 border border-white/20 rounded-2xl p-6 hover:bg-white/70 hover:border-white/30 transition-all duration-300 group">
                       <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Brain className="w-6 h-6 text-white" />
@@ -423,7 +645,7 @@ const VoicePage: React.FC = () => {
                       <h3 className="font-serif font-bold text-neutral-800 mb-2">⚡ Smart Responses</h3>
                       <p className="text-sm text-neutral-600">Get instant, intelligent answers to any question you have.</p>
                     </div>
-
+                    
                     <div className="backdrop-blur-xl bg-white/40 border border-white/20 rounded-2xl p-6 hover:bg-white/70 hover:border-white/30 transition-all duration-300 group">
                       <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Heart className="w-6 h-6 text-white" />
@@ -445,10 +667,10 @@ const VoicePage: React.FC = () => {
                     className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
                   >
                     <div
-                      className={`max-w-4xl p-6 rounded-3xl backdrop-blur-xl border transition-all duration-300 hover:scale-[1.02] ${
+                      className={`max-w-4xl p-5 rounded-3xl backdrop-blur-xl border transition-all duration-300 ${
                         message.type === 'user'
-                          ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-neutral-800'
-                          : 'bg-white/10 border-white/20 text-neutral-800'
+                        ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30 text-neutral-800'
+                        : mentoraBubbleColor + ' text-neutral-800'
                       }`}
                     >
                       <div className="flex items-start gap-4">
@@ -473,7 +695,7 @@ const VoicePage: React.FC = () => {
                               {message.timestamp.toLocaleTimeString()}
                             </span>
                             {message.type === 'user' && (
-                              <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
                                 <span className="text-white font-bold text-sm">
                                   {getUserDisplayName().charAt(0).toUpperCase()}
                                 </span>
@@ -521,10 +743,20 @@ const VoicePage: React.FC = () => {
                               </button>
                               
                               <button
+                                onClick={saveCurrentChat}
                                 className="flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 transition-colors bg-amber-100/60 px-3 py-2 rounded-xl hover:bg-amber-100/80"
-                              >
-                                <Star className="w-4 h-4" />
+                              >   
+                                 {savedChatId === currentChatId ? (
+                                  <>
+                                    <CheckCircle className="w-4 h-4 text-amber-500" />
+                                    <span>Saved!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Star className="w-4 h-4" />
                                 <span>Save</span>
+                                  </>
+                                )}
                               </button>
                             </div>
                           )}
@@ -536,9 +768,9 @@ const VoicePage: React.FC = () => {
                 
                 {isProcessing && (
                   <div className="flex justify-start animate-fadeIn">
-                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 p-6 rounded-3xl">
+                    <div className={`max-w-4xl p-6 rounded-3xl border ${mentoraBubbleColor} transition-all duration-300 hover:scale-[1.02]`}>
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-green-200 to-green-400 rounded-2xl flex items-center justify-center">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-2xl flex items-center justify-center">
                           <Brain className="w-6 h-6 text-white" />
                         </div>
                         <div className="flex items-center gap-3">
@@ -554,7 +786,6 @@ const VoicePage: React.FC = () => {
                     </div>
                   </div>
                 )}
-                <div ref={messagesEndRef} />
               </div>
             )}
 
@@ -628,7 +859,7 @@ const VoicePage: React.FC = () => {
                     onKeyPress={handleKeyPress}
                     placeholder={isListening ? "🎤 Listening..." : "Type your message or use voice..."}
                     disabled={isListening || isProcessing}
-                    className="w-full px-6 py-4 rounded-2xl border-0 bg-white/100 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all duration-300 resize-none text-lg"
+                    className="w-full px-6 py-4 rounded-2xl border-0 bg-white/100 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/50 focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all duration-300 resize-none text-lg"
                     rows={1}
                     style={{ minHeight: '64px', maxHeight: '160px' }}
                   />
@@ -662,6 +893,12 @@ const VoicePage: React.FC = () => {
                       {isPaused ? 'Speech paused' : 'Speaking response...'}
                     </span>
                   )}
+                  {sessionStartTime && (
+                    <span className="flex items-center gap-2 text-blue-600">
+                      <Clock className="w-3 h-3" />
+                      Session: {Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 60000)}m
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-4">
                   <span>Press Enter to send</span>
@@ -670,8 +907,10 @@ const VoicePage: React.FC = () => {
                 </div>
               </div>
             </div>
+
           </div>
         </main>
+        
       </div>
     </div>
   );

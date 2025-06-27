@@ -1,0 +1,57 @@
+[33mf9817c1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mrecovered-pre-rebase[m[33m)[m voice chats saving and being refenced, working well
+[33m1f91224[m heatmap ui updates
+[33m508185f[m charts and heatmaps showing
+[33m9a5d0f9[m dashboard and profile working, charts not displaying on dashboard
+[33ma6587b3[m added voice panel to premium and profile and updated image rendering
+[33ma93d6d3[m navbar updated
+[33m3199457[m updated profile and student dashboard page, not getting firebase data tho
+[33m3a26a7a[m quiz generation and answers improved
+[33m1d725a3[m firestore with youtube summarizer, handwritten notes, and quiz generation
+[33m0641530[m firestore added to pdf summarizer
+[33m6bbdaaf[m integerated firebase with break mode and text summarizer
+[33m4b586c0[m speak text on storytelling page
+[33m7a01b48[m readme and todo update
+[33med3875e[m improved tavuz and elevenlabs files for integeration
+[33m563dffd[m added built with bolt img on landing, auth, and premium pages
+[33m7fc8685[m added voice panel on storypage
+[33mad8945d[m storytelling integeration, character and voice not working
+[33mc6a21eb[m quiz design better and question genration handled\ it gives wrong answers some times so fix that
+[33me8caccd[m better error handling of youtube sumarization
+[33m1d881da[m minor stylings for navbars and fields
+[33m368bc19[m break and study page seperated, home, voice and navbar page improved, premium page, story telling page layout
+[33m5792c94[m Update design_storytelling.md
+[33mfb1fd1e[m Update design_feedback.md
+[33m15adcb9[m Update design_accessibility.md
+[33m1692398[m Update design_README.md
+[33m768207f[m Update design_README.md
+[33m106b49c[m Delete Design-Documentation/temp
+[33me34bc1d[m Add files via upload
+[33m4250a8c[m Create temp
+[33m5b489dc[m Delete DESIGN-DOCUMENTATION.zip
+[33md1585b5[m Add files via upload
+[33m88cdd43[m premium modal
+[33mf025040[m break session integerated
+[33mb2a3ba2[m handwritten images and youtube summarization working as well
+[33mfb8bd51[m finally linked both ends, pdf, text, chat, and quiz working well, update the rest later
+[33m1ba9efd[m set up api to link front and backend, voice page, more stlying frr
+[33ma7b45d0[m profile page, integerated firebase, updated navbar
+[33mf2531c9[m privacy and terms of service
+[33mf2d828c[m final stylings across existing pages
+[33m675bf78[m mentora logo
+[33m1ac23c5[m landing page, updatd styling on existing pages
+[33m1134603[m requirement.text
+[33m7acbc1a[m Environment Example
+[33m2621ec8[m Error Hand
+[33me729a2d[m Merge branch 'main' of https://github.com/ewa-edun/Mentora
+[33me83473d[m Gemini endpoint
+[33m4434471[m better auth pages styling
+[33m9dd74ce[m refactor code, added auth pages, link them to firebase service
+[33m9bec6df[m basic frontend files and service files
+[33m31e6916[m service page set up/firebase, gemini, whisper
+[33m3ac005d[m readme and todo
+[33m732c47b[m Update README.md
+[33m3c29ea5[m Update README.md
+[33m3349b98[m Update README.md
+[33m8376fd5[m Update README.md
+[33mbe30b1b[m Update README.md
+[33m3a7ce70[m Initial commit

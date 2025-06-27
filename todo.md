@@ -100,3 +100,25 @@ Provide a URL to a publicly available version of the project that is fully funct
 Confirm usage of Bolt.new to build the project and show the ‘Built with Bolt.new’ badge on your public project.
 Provide the email used to build the project on Bolt.new. This email must be associated with the usage of Bolt.new to built the submitted project.
 
+1. PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
+2. Add two files as backup demo data: /demo/avatar-video.mp4 and /demo/voice-narration.mp3
+3. Fix the elevenlabs and tavus issue
+4. then let these data show on the user dashboard where needed, the voice chat should show under the study analytics, and the story mode analytics should be a new different tab.
+
+6. Integerate with RevenueCat for subscription. 
+7. Deploy and get Custom Domain via Entri integration.
+8. Whisper working
+9. Finish Demo Video.
+
+10. Integerate Adaptive Recommendations: AI learns your preferences and suggests optimal study strategies.
+11. Custom Emotion Analysis using NLP keyword matching and sentiment analysis
+     - Developed custom NLP algorithms that accurately detect emotions from voice/text input
+     - Built personalized activity recommendation engine with 6+ emotion categories
+     - Created dynamic UI that adapts colors, messaging, and suggestions based on emotional state
+
+
+firebase.ts:860 Error creating story session: FirebaseError: Function addDoc() called with invalid data. Unsupported field value: undefined (found in field audioUrl in document storySessions/9mwmV4Kd4qzxbiLlyQGq)
+StoryTellingPage.tsx:107 Error saving story session: FirebaseError: Function addDoc() called with invalid data. Unsupported field value: undefined (found in field audioUrl in document storySessions/9mwmV4Kd4qzxbiLlyQGq)
+saveStorySession	@	StoryTellingPage.tsx:107
+await in saveStorySession		
+handleGenerateStory	@	StoryTellingPage.tsx:195

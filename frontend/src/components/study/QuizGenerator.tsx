@@ -1,6 +1,21 @@
-import React, { useState } from 'react';
-import { Brain, ChevronDown, Loader2, CheckCircle, Copy, Download, RotateCcw, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Brain, ChevronDown, Loader2, CheckCircle, Copy, Download, RotateCcw, Sparkles, ArrowRight, ArrowLeft, Trophy, Target, RefreshCw, X } from 'lucide-react';
 import { generateQuiz } from '../../services/api';
+import { getCurrentUser, createStudySession, updateStudySession, endStudySession, updateLearningProgress, updateUserProfile, getUserProfile} from '../../services/firebase';
+
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation?: string;
+}
+
+interface QuizResult {
+  questionIndex: number;
+  selectedAnswer: number;
+  isCorrect: boolean;
+  timeSpent: number;
+}
 
 const QuizGenerator: React.FC = () => {
   const [topic, setTopic] = useState('');
@@ -8,16 +23,24 @@ const QuizGenerator: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
 
-  type QuizQuestion = {
-    question: string;
-    options: string[];
-    correct: number;
-    explanation: string;
-  };
-
+  // Quiz state
   const [quiz, setQuiz] = useState<QuizQuestion[]>([]);
   const [rawQuizText, setRawQuizText] = useState('');
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [quizResults, setQuizResults] = useState<QuizResult[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const [quizStartTime, setQuizStartTime] = useState<number>(0);
+  const [questionStartTime, setQuestionStartTime] = useState<number>(0);
+  const [isQuizActive, setIsQuizActive] = useState(false);
+
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
 
   const handleSubmit = async () => {
     if (!topic.trim()) {
@@ -28,51 +51,499 @@ const QuizGenerator: React.FC = () => {
     setIsGenerating(true);
     setError('');
 
-    // Try to connect to Flask API first
-    const result = await generateQuiz(topic);
-    
-    if (result.success && result.data) {
-      setRawQuizText(result.data['Your Quiz']);
-      // Try to parse the quiz into structured format
-      parseQuizFromText(result.data['Your Quiz']);
-    } else {
-      // Fallback to demo data if API fails
-      setError('Using demo data - connect to Flask API for real quiz generation');
-      setTimeout(() => {
-        setIsGenerating(false);
-        setQuiz([
-          {
-            question: "What is the fundamental unit of quantum information?",
-            options: ["Bit", "Qubit", "Byte", "Quantum"],
-            correct: 1,
-            explanation: "A qubit is the basic unit of quantum information, capable of existing in superposition states."
+    try {
+      // Create study session if user is signed in
+      let sessionId = null;
+      if (user) {
+        sessionId = await createStudySession({
+          userId: user.uid,
+          mode: 'study',
+          type: 'quiz',
+          startTime: new Date(),
+          content: {
+            input: topic
           },
-          {
-            question: "Which principle allows quantum particles to exist in multiple states simultaneously?",
-            options: ["Entanglement", "Superposition", "Interference", "Decoherence"],
-            correct: 1,
-            explanation: "Superposition allows quantum particles to exist in multiple states at once until measured."
+          metadata: {
+            difficulty: difficulty.toLowerCase(),
+            topic: 'Quiz Generation',
+            wordCount: topic.trim().split(/\s+/).length
           }
-        ]);
-      }, 2000);
-      return;
+        });
+        setCurrentSessionId(sessionId);
+      }
+
+      const result = await generateQuiz(topic);
+      
+      if (result.success && result.data) {
+        setRawQuizText(result.data['Your Quiz']);
+        console.log('Raw quiz text from backend:', result.data['Your Quiz']); // Debug log
+        
+        const parsedQuiz = parseQuizFromText(result.data['Your Quiz']);
+        console.log('Parsed quiz questions:', parsedQuiz); // Debug log
+        
+        if (parsedQuiz.length > 0) {
+          setQuiz(parsedQuiz);
+        } else {
+          console.log('No questions parsed, using fallback quiz');
+          setQuiz(generateFallbackQuiz(topic));
+        }
+
+        // Update session with quiz content if user is signed in
+        if (user && sessionId) {
+          await updateStudySession(sessionId, {
+            content: {
+              input: topic,
+              output: result.data['Your Quiz'],
+              totalQuestions: parsedQuiz.length || 3
+            }
+          });
+
+          // Update learning progress
+          await updateLearningProgress({
+            userId: user.uid,
+            topic: 'Quiz Generation',
+            difficulty: difficulty.toLowerCase() as 'beginner' | 'intermediate' | 'advanced',
+            progress: 50, // 50% for generation, 100% when completed
+            timeSpent: 0,
+            quizScores: [],
+            mastered: false
+          });
+        }
+      } else {
+        setError(result.error || 'Failed to generate quiz');
+        // Update session with error if user is signed in
+        if (user && sessionId) {
+          await updateStudySession(sessionId, {
+            content: {
+              input: topic,
+              output: `Error: ${result.error || 'Failed to generate quiz'}`
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error in quiz generation:', error);
+      setError('An unexpected error occurred');
+    } finally {
+      setIsGenerating(false);
     }
-    
-    setIsGenerating(false);
   };
 
-  const parseQuizFromText = (text: string) => {
-    // Simple parsing logic - in a real app, you'd want more sophisticated parsing
-    // For now, we'll just store the raw text and show it
-    setRawQuizText(text);
+  const parseQuizFromText = (text: string): QuizQuestion[] => {
+    const questions: QuizQuestion[] = [];
     
-    // You could implement parsing logic here to extract structured quiz data
-    // For demo purposes, we'll show the raw text
+    try {
+      console.log('🔍 Parsing quiz text:', text);
+      
+      // Split by **Question patterns
+      const questionBlocks = text.split(/\*\*Question\s+\d+:\*\*/gi).filter(block => block.trim());
+      
+      console.log(`📝 Found ${questionBlocks.length} question blocks`);
+      
+      for (let i = 1; i < questionBlocks.length; i++) { // Skip first empty block
+        const block = questionBlocks[i].trim();
+        if (!block) continue;
+        
+        console.log(`\n🔍 Processing block ${i}:`);
+        console.log(block.substring(0, 200) + '...');
+        
+        const lines = block.split('\n').map(line => line.trim()).filter(line => line);
+        
+        let questionText = '';
+        const options: string[] = [];
+        let correctAnswer = 0;
+        let answerKey = '';
+        
+        // Parse each line
+        for (let j = 0; j < lines.length; j++) {
+          const line = lines[j];
+          
+          // Skip empty lines
+          if (!line) continue;
+          
+          // Check for answer line (**Answer:** B)
+          const answerMatch = line.match(/\*\*Answer:\*\*\s*([A-D])/i);
+          if (answerMatch) {
+            answerKey = answerMatch[1].toUpperCase();
+            console.log(`✅ Found answer key: ${answerKey}`);
+            continue;
+          }
+          
+          // Check for options (A), B), C), D))
+          const optionMatch = line.match(/^([A-D])\)\s*(.+)/i);
+          if (optionMatch) {
+            const optionText = optionMatch[2].trim();
+            options.push(optionText);
+            console.log(`📋 Added option ${optionMatch[1]}: ${optionText}`);
+            continue;
+          }
+          
+          // If we don't have a question yet and this isn't an option or answer
+          if (!questionText && !optionMatch && !answerMatch) {
+            questionText = line;
+            console.log(`❓ Question text: ${questionText}`);
+          }
+        }
+        
+        // Convert answer key to index
+        if (answerKey && options.length > 0) {
+          const answerIndex = answerKey.charCodeAt(0) - 'A'.charCodeAt(0);
+          if (answerIndex >= 0 && answerIndex < options.length) {
+            correctAnswer = answerIndex;
+            console.log(`🎯 Correct answer: ${answerKey} = index ${correctAnswer} (${options[correctAnswer]})`);
+          }
+        }
+        
+        // Validate and add question
+        if (questionText && options.length >= 2) {
+          const question: QuizQuestion = {
+            question: questionText,
+            options: options,
+            correctAnswer: correctAnswer,
+            explanation: `The correct answer is ${options[correctAnswer]}`
+          };
+          
+          questions.push(question);
+          console.log(`✅ Added question ${questions.length}: ${questionText.substring(0, 50)}...`);
+        } else {
+          console.log(`❌ Skipped invalid question block - Question: "${questionText}", Options: ${options.length}`);
+        }
+      }
+      
+      // If no questions found with **Question pattern, try alternative parsing
+      if (questions.length === 0) {
+        console.log('🔄 No questions found with **Question pattern, trying alternative parsing...');
+        
+        // Try splitting by numbered questions (1., 2., etc.)
+        const numberedBlocks = text.split(/(?=\d+\.?\s*[A-Z])/g).filter(block => block.trim());
+        
+        for (const block of numberedBlocks) {
+          const lines = block.trim().split('\n').map(line => line.trim()).filter(line => line);
+          if (lines.length < 3) continue;
+          
+          let questionText = '';
+          const options: string[] = [];
+          let correctAnswer = 0;
+          
+          for (const line of lines) {
+            // Skip question numbers
+            if (/^\d+\.?\s*$/.test(line)) continue;
+            
+            // Check for options
+            const optionMatch = line.match(/^([A-D]|[a-d])[\)\.]\s*(.+)/i);
+            if (optionMatch) {
+              options.push(optionMatch[2].trim());
+              continue;
+            }
+            
+            // Check for answer
+            const answerMatch = line.match(/(?:answer|correct):\s*([A-D]|[a-d])/i);
+            if (answerMatch) {
+              const answerLetter = answerMatch[1].toUpperCase();
+              correctAnswer = answerLetter.charCodeAt(0) - 'A'.charCodeAt(0);
+              continue;
+            }
+            
+            // Question text
+            if (!questionText && !optionMatch && !answerMatch) {
+              questionText = line.replace(/^\d+\.?\s*/, '').trim();
+            }
+          }
+          
+          if (questionText && options.length >= 2) {
+            questions.push({
+              question: questionText,
+              options: options,
+              correctAnswer: Math.max(0, Math.min(correctAnswer, options.length - 1)),
+              explanation: `The correct answer is ${options[correctAnswer] || 'option ' + (correctAnswer + 1)}`
+            });
+          }
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Error parsing quiz:', error);
+    }
+    
+    console.log(`🎯 Final result: ${questions.length} questions parsed`);
+    return questions;
+  };
+
+  const generateFallbackQuiz = (topic: string): QuizQuestion[] => {
+    const topicLower = topic.toLowerCase();
+    
+    if (topicLower.includes('math') || topicLower.includes('algebra') || topicLower.includes('calculus')) {
+      return [
+        {
+          question: "What is the fundamental theorem of calculus primarily concerned with?",
+          options: ["Derivatives and integrals", "Limits and continuity", "Functions and graphs", "Equations and inequalities"],
+          correctAnswer: 0,
+          explanation: "The fundamental theorem of calculus establishes the relationship between derivatives and integrals."
+        },
+        {
+          question: "In algebra, what does the quadratic formula help you find?",
+          options: ["The slope of a line", "The roots of a quadratic equation", "The area under a curve", "The derivative of a function"],
+          correctAnswer: 1,
+          explanation: "The quadratic formula is used to find the solutions (roots) of quadratic equations."
+        }
+      ];
+    } else if (topicLower.includes('science') || topicLower.includes('physics') || topicLower.includes('chemistry')) {
+      return [
+        {
+          question: "What is the basic unit of matter?",
+          options: ["Molecule", "Atom", "Element", "Compound"],
+          correctAnswer: 1,
+          explanation: "An atom is the smallest unit of matter that retains the properties of an element."
+        },
+        {
+          question: "What force keeps planets in orbit around the sun?",
+          options: ["Magnetic force", "Electric force", "Gravitational force", "Nuclear force"],
+          correctAnswer: 2,
+          explanation: "Gravitational force is the attractive force that keeps planets in orbit around the sun."
+        }
+      ];
+    } else {
+      return [
+        {
+          question: `What is the main topic of study in ${topic}?`,
+          options: [
+            `The fundamental concepts and principles`,
+            `Only historical background`,
+            `Memorization of facts`,
+            `Unrelated information`
+          ],
+          correctAnswer: 0,
+          explanation: `The main focus is understanding the fundamental concepts and principles of ${topic}.`
+        },
+        {
+          question: `Which approach is most effective when studying ${topic}?`,
+          options: [
+            `Active learning and practice`,
+            `Passive reading only`,
+            `Avoiding difficult concepts`,
+            `Skipping examples`
+          ],
+          correctAnswer: 0,
+          explanation: `Active learning and practice are the most effective approaches for mastering any subject.`
+        },
+        {
+          question: `What is the best way to retain information about ${topic}?`,
+          options: [
+            `Regular review and application`,
+            `Cramming before tests`,
+            `Reading once and forgetting`,
+            `Avoiding practice problems`
+          ],
+          correctAnswer: 0,
+          explanation: `Regular review and application help with long-term retention of information.`
+        }
+      ];
+    }
+  };
+
+  const startQuiz = () => {
+    setIsQuizActive(true);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setQuizResults([]);
+    setShowResults(false);
+    setQuizStartTime(Date.now());
+    setQuestionStartTime(Date.now());
+  };
+
+  const selectAnswer = (answerIndex: number) => {
+    setSelectedAnswer(answerIndex);
+  };
+
+  const nextQuestion = () => {
+    if (selectedAnswer === null) return;
+
+    const timeSpent = Date.now() - questionStartTime;
+    const isCorrect = selectedAnswer === quiz[currentQuestionIndex].correctAnswer;
+    
+    console.log(`Question ${currentQuestionIndex + 1}:`);
+    console.log(`Selected: ${selectedAnswer} (${quiz[currentQuestionIndex].options[selectedAnswer]})`);
+    console.log(`Correct: ${quiz[currentQuestionIndex].correctAnswer} (${quiz[currentQuestionIndex].options[quiz[currentQuestionIndex].correctAnswer]})`);
+    console.log(`Is Correct: ${isCorrect}`);
+    
+    const result: QuizResult = {
+      questionIndex: currentQuestionIndex,
+      selectedAnswer,
+      isCorrect,
+      timeSpent
+    };
+
+    setQuizResults(prev => [...prev, result]);
+
+    if (currentQuestionIndex < quiz.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      setSelectedAnswer(null);
+      setQuestionStartTime(Date.now());
+    } else {
+      // Quiz completed
+      finishQuiz([...quizResults, result]);
+    }
+  };
+
+  const previousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+      // Restore previous answer
+      const previousResult = quizResults[currentQuestionIndex - 1];
+      setSelectedAnswer(previousResult?.selectedAnswer ?? null);
+    }
+  };
+
+  const finishQuiz = async (finalResults: QuizResult[]) => {
+    setIsQuizActive(false);
+    setShowResults(true);
+    
+    const correctAnswers = finalResults.filter(result => result.isCorrect).length;
+    const percentage = (correctAnswers / quiz.length) * 100;
+    const totalTime = Math.floor((Date.now() - quizStartTime) / 1000);
+    
+    console.log('Quiz Results:');
+    console.log(`Correct: ${correctAnswers}/${quiz.length}`);
+    console.log(`Percentage: ${percentage}%`);
+    console.log('Detailed results:', finalResults);
+    
+    // Update Firebase session with quiz results if user is signed in
+    if (user && currentSessionId) {
+      try {
+        await updateStudySession(currentSessionId, {
+          content: {
+            input: topic,
+            output: rawQuizText,
+            score: percentage,
+            totalQuestions: quiz.length,
+            correctAnswers: correctAnswers
+          }
+        });
+
+        // Update learning progress with quiz score
+        await updateLearningProgress({
+          userId: user.uid,
+          topic: 'Quiz Generation',
+          difficulty: difficulty.toLowerCase() as 'beginner' | 'intermediate' | 'advanced',
+          progress: 100,
+          timeSpent: totalTime,
+          quizScores: [percentage],
+          mastered: percentage >= 80
+        });
+
+        // Update user stats
+        const userProfile = await getUserProfile(user.uid);
+        if (userProfile) {
+          const currentStats = userProfile.studyStats || {
+            totalStudyTime: 0,
+            sessionsCompleted: 0,
+            quizzesCompleted: 0,
+            averageScore: 0,
+            totalBreakTime: 0,
+            emotionalCheckIns: 0,
+            streakDays: 0
+          };
+
+          const newAverageScore = currentStats.quizzesCompleted > 0 
+            ? (currentStats.averageScore * currentStats.quizzesCompleted + percentage) / (currentStats.quizzesCompleted + 1)
+            : percentage;
+
+          await updateUserProfile(user.uid, {
+            studyStats: {
+              ...currentStats,
+              quizzesCompleted: currentStats.quizzesCompleted + 1,
+              averageScore: newAverageScore
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error updating quiz results:', error);
+      }
+    }
+    
+    // Play sound based on score
+    setTimeout(() => {
+      if (percentage >= 50) {
+        playWinnerSound();
+        triggerConfetti();
+      } else {
+        playLoseSound();
+      }
+    }, 500);
+  };
+
+  const playWinnerSound = () => {
+    try {
+      const audio = new Audio('/sounds/winner.wav');
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log('Could not play winner sound:', e));
+    } catch {
+      console.log('Winner sound not available');
+    }
+  };
+
+  const playLoseSound = () => {
+    try {
+      const audio = new Audio('/sounds/lose.wav');
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log('Could not play lose sound:', e));
+    } catch {
+      console.log('Lose sound not available');
+    }
+  };
+
+  const triggerConfetti = () => {
+    // Create confetti effect
+    const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
+    
+    for (let i = 0; i < 50; i++) {
+      setTimeout(() => {
+        const confetti = document.createElement('div');
+        confetti.style.position = 'fixed';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.top = '-10px';
+        confetti.style.width = '10px';
+        confetti.style.height = '10px';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.borderRadius = '50%';
+        confetti.style.pointerEvents = 'none';
+        confetti.style.zIndex = '9999';
+        confetti.style.animation = 'confetti-fall 3s linear forwards';
+        
+        document.body.appendChild(confetti);
+        
+        setTimeout(() => {
+          confetti.remove();
+        }, 3000);
+      }, i * 50);
+    }
+  };
+
+  const resetQuiz = async () => {
+    // End current session if exists
+    if (currentSessionId && user) {
+      try {
+        await endStudySession(currentSessionId, user.uid);
+      } catch (error) {
+        console.error('Error ending session:', error);
+      }
+    }
+
+    setIsQuizActive(false);
+    setShowResults(false);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setQuizResults([]);
+    setQuiz([]);
+    setRawQuizText('');
+    setTopic('');
+    setError('');
+    setCurrentSessionId(null);
   };
 
   const handleCopy = async () => {
     const textToCopy = rawQuizText || quiz.map((q, i) => 
-      `${i + 1}. ${q.question}\n${q.options.map((opt, j) => `${String.fromCharCode(65 + j)}. ${opt}`).join('\n')}\nAnswer: ${String.fromCharCode(65 + q.correct)}\nExplanation: ${q.explanation}\n\n`
+      `${i + 1}. ${q.question}\n${q.options.map((opt, j) => `${String.fromCharCode(65 + j)}. ${opt}`).join('\n')}\nAnswer: ${String.fromCharCode(65 + q.correctAnswer)}\nExplanation: ${q.explanation}\n\n`
     ).join('');
     
     if (textToCopy) {
@@ -84,7 +555,7 @@ const QuizGenerator: React.FC = () => {
 
   const handleDownload = () => {
     const textToDownload = rawQuizText || quiz.map((q, i) => 
-      `${i + 1}. ${q.question}\n${q.options.map((opt, j) => `${String.fromCharCode(65 + j)}. ${opt}`).join('\n')}\nAnswer: ${String.fromCharCode(65 + q.correct)}\nExplanation: ${q.explanation}\n\n`
+      `${i + 1}. ${q.question}\n${q.options.map((opt, j) => `${String.fromCharCode(65 + j)}. ${opt}`).join('\n')}\nAnswer: ${String.fromCharCode(65 + q.correctAnswer)}\nExplanation: ${q.explanation}\n\n`
     ).join('');
     
     if (textToDownload) {
@@ -100,118 +571,157 @@ const QuizGenerator: React.FC = () => {
     }
   };
 
-  const handleReset = () => {
-    setTopic('');
-    setQuiz([]);
-    setRawQuizText('');
-    setError('');
-    setCopied(false);
-  };
-
   const wordCount = topic.trim().split(/\s+/).filter(word => word.length > 0).length;
+  const currentQuestion = quiz[currentQuestionIndex];
+  const correctAnswers = quizResults.filter(result => result.isCorrect).length;
+  const totalQuestions = quiz.length;
+  const percentage = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
 
   return (
-    <div className="backdrop-blur-xl bg-white/20 border border-purple/20 rounded-3xl p-8 shadow-2xl hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-1 glass-card lg:col-span-2">
-      <div className="text-center mb-6">
-        <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-          <Brain className="w-8 h-8 text-white" />
-        </div>
-        <h3 className="text-2xl font-serif font-bold text-neutral-800 mb-2">🧠 Quiz Generator</h3>
-        <p className="text-neutral-600">Create personalized quizzes from your study materials</p>
-      </div>
+    <>
+      {/* Confetti CSS */}
+      <style>
+        {`
+          @keyframes confetti-fall {
+            0% {
+              transform: translateY(-10px) rotate(0deg);
+              opacity: 1;
+            }
+            100% {
+              transform: translateY(100vh) rotate(720deg);
+              opacity: 0;
+            }
+          }
+        `}
+      </style>
 
-      <div className="space-y-6">
-        {/* Topic Input */}
-        <div>
-          <label className="block text-sm font-medium text-black-700 mb-2">
-            Topic or Notes
-          </label>
-          <div className="relative">
-            <textarea
-              value={topic}
-              onChange={(e) => {
-                setTopic(e.target.value);
-                setError('');
-              }}
-              placeholder="Enter your study topic or paste your notes here..."
-              rows={4}
-              className="w-full p-4 rounded-2xl border-0 bg-white/30 backdrop-blur-sm border-2 border-purple-200 placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all duration-300 resize-none"
-              maxLength={5000}
-            />
-            <div className="absolute bottom-3 right-3 text-xs text-neutral-500">
-              {wordCount} words
+      <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl hover:bg-white/15 transition-all duration-300 transform hover:-translate-y-1">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <Brain className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-2xl font-serif font-bold text-neutral-800 mb-2">🧠 Quiz Generator</h3>
+          <p className="text-neutral-600">Create personalized quizzes from your study materials</p>
+        </div>
+
+        {!isQuizActive && !showResults && quiz.length === 0 && (
+          /* Quiz Creation Interface */
+          <div className="space-y-6">
+            {/* Topic Input */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Topic or Notes
+              </label>
+              <div className="relative">
+                <textarea
+                  value={topic}
+                  onChange={(e) => {
+                    setTopic(e.target.value);
+                    setError('');
+                  }}
+                  placeholder="Enter your study topic or paste your notes here..."
+                  rows={4}
+                  className="w-full p-4 rounded-2xl border-0 bg-white/20 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all duration-300 resize-none"
+                  maxLength={5000}
+                />
+                <div className="absolute bottom-3 right-3 text-xs text-neutral-500">
+                  {wordCount} words
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Difficulty Level */}
-        <div>
-          <label className="block text-sm font-medium text-black-700 mb-2">
-            Difficulty Level
-          </label>
-          <div className="relative">
-            <select
-              value={difficulty}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDifficulty(e.target.value as 'Beginner' | 'Intermediate' | 'Advanced')}
-              className="w-full p-4 rounded-2xl border-2 border-purple-200 bg-white/30 backdrop-blur-sm text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all duration-300 appearance-none cursor-pointer"
+            {/* Difficulty Level */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Difficulty Level
+              </label>
+              <div className="relative">
+                <select
+                  value={difficulty}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDifficulty(e.target.value as 'Beginner' | 'Intermediate' | 'Advanced')}
+                  className="w-full p-4 rounded-2xl border-0 bg-white/20 backdrop-blur-sm text-neutral-800 focus:bg-white/30 focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all duration-300 appearance-none cursor-pointer"
+                >
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-600 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="p-4 bg-red-100/80 backdrop-blur-sm border border-red-200/50 rounded-xl">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            )}
+
+            {/* Generate Button */}
+            <button
+              onClick={handleSubmit}
+              disabled={!topic.trim() || isGenerating}
+              className="w-full flex items-center justify-center space-x-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white py-4 px-6 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-105 transition-all duration-300 shadow-lg"
             >
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-600 pointer-events-none" />
-          </div>
-        </div>
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin text-white" />
+                  <span className="text-white">Generating Quiz...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 text-white" />
+                  <span className="text-white">Generate Quiz</span>
+                </>
+              )}
+            </button>
 
-        {/* Error Message */}
-        {error && (
-          <div className="p-4 bg-red-100/80 backdrop-blur-sm border border-red-200/50 rounded-xl">
-            <p className="text-sm text-red-700">{error}</p>
+            {/* Tips */}
+            <div className="p-4 bg-purple-100/60 backdrop-blur-sm rounded-xl border border-purple-200/50">
+              <h5 className="text-sm font-medium text-purple-700 mb-2">🎯 Quiz generation tips:</h5>
+              <ul className="text-xs text-purple-600 space-y-1">
+                <li>• Include key concepts, definitions, and important facts</li>
+                <li>• Works best with structured content like textbook chapters</li>
+                <li>• AI generates multiple choice questions with explanations</li>
+                {!user && <li>• <strong>Sign in to track your quiz performance and progress</strong></li>}
+              </ul>
+            </div>
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-3">
-          <button
-            onClick={handleSubmit}
-            disabled={!topic.trim() || isGenerating}
-            className="flex-1 flex items-center justify-center space-x-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white py-4 px-6 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-105 transition-all duration-300 shadow-lg"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin text-white" />
-                <span className="text-white">Generating Quiz...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5 text-white" />
-                <span className="text-white">Generate Quiz</span>
-              </>
-            )}
-          </button>
-          
-          {(topic || quiz.length > 0 || rawQuizText) && (
-            <button
-              onClick={handleReset}
-              className="flex items-center justify-center px-4 py-4 bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 rounded-2xl hover:bg-white/30 hover:border-white/50 transition-all duration-300"
-            >
-              <RotateCcw className="w-5 h-5" />
-            </button>
-          )}
-        </div>
+        {!isQuizActive && !showResults && quiz.length > 0 && (
+          /* Quiz Preview */
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <CheckCircle className="w-6 h-6 text-green-500" />
+                <h4 className="text-xl font-serif font-bold text-neutral-800">Quiz Ready!</h4>
+              </div>
+              <p className="text-neutral-600 mb-6">
+                Your {difficulty.toLowerCase()} level quiz has {quiz.length} questions. Ready to test your knowledge?
+              </p>
+              
+              <div className="flex items-center justify-center gap-4 mb-6">
+                <button
+                  onClick={startQuiz}
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-300 shadow-lg flex items-center gap-3"
+                >
+                  <Target className="w-6 h-6" />
+                  <span>Start Quiz</span>
+                </button>
+                
+                <button
+                  onClick={resetQuiz}
+                  className="bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 px-6 py-4 rounded-2xl font-medium hover:bg-white/30 hover:border-white/50 transition-all duration-300 flex items-center gap-2"
+                >
+                  <RotateCcw className="w-5 h-5" />
+                  <span>Create New Quiz</span>
+                </button>
+              </div>
 
-        {/* Quiz Results */}
-        {(quiz.length > 0 || rawQuizText) && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-purple-700 text-lg flex items-center">
-                <CheckCircle className="w-5 h-5 mr-2" />
-                Generated Quiz ({difficulty} Level)
-              </h4>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center gap-4 text-sm">
                 <button
                   onClick={handleCopy}
-                  className="flex items-center gap-1 text-purple-600 hover:text-purple-700 transition-colors text-sm"
+                  className="flex items-center gap-2 text-purple-600 hover:text-purple-700 transition-colors"
                 >
                   {copied ? (
                     <>
@@ -221,68 +731,261 @@ const QuizGenerator: React.FC = () => {
                   ) : (
                     <>
                       <Copy className="w-4 h-4" />
-                      <span>Copy</span>
+                      <span>Copy Quiz</span>
                     </>
                   )}
                 </button>
                 <button
                   onClick={handleDownload}
-                  className="flex items-center gap-1 text-purple-600 hover:text-purple-700 transition-colors text-sm"
+                  className="flex items-center gap-2 text-purple-600 hover:text-purple-700 transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download</span>
                 </button>
               </div>
-            </div>
 
-            {/* Display Raw Quiz Text (from API) */}
-            {rawQuizText && (
-              <div className="p-6 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 backdrop-blur-sm rounded-2xl border border-purple-200/50">
-                <pre className="text-neutral-700 leading-relaxed whitespace-pre-wrap font-sans text-sm">{rawQuizText}</pre>
-              </div>
-            )}
-
-            {/* Display Structured Quiz (fallback demo) */}
-            {quiz.length > 0 && !rawQuizText && quiz.map((q, index) => (
-              <div key={index} className="p-6 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 backdrop-blur-sm rounded-2xl border border-purple-200/50">
-                <h5 className="font-semibold text-neutral-800 mb-4">
-                  {index + 1}. {q.question}
-                </h5>
-                <div className="space-y-2 mb-4">
-                  {q.options.map((option: string, optIndex: number) => (
-                    <div
-                      key={optIndex}
-                      className={`p-3 rounded-xl border transition-colors ${
-                        optIndex === q.correct
-                          ? 'bg-green-100/80 border-green-300 text-green-800'
-                          : 'bg-white/80 border-neutral-200 text-neutral-700'
-                      }`}
-                    >
-                      {String.fromCharCode(65 + optIndex)}. {option}
-                    </div>
-                  ))}
-                </div>
-                <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-200">
-                  <p className="text-sm text-blue-700">
-                    <strong>Explanation:</strong> {q.explanation}
+              {user && currentSessionId && (
+                <div className="mt-6 p-3 bg-green-100/60 backdrop-blur-sm rounded-xl border border-green-200/50">
+                  <p className="text-sm text-green-700">
+                    ✅ Your quiz session is being tracked for performance analytics.
                   </p>
                 </div>
-              </div>
-            ))}
+              )}
+            </div>
           </div>
         )}
 
-        {/* Tips */}
-        <div className="p-4 bg-purple-100/60 backdrop-blur-sm rounded-xl border border-purple-200/50">
-          <h5 className="text-sm font-medium text-purple-700 mb-2">🎯 Quiz generation tips:</h5>
-          <ul className="text-xs text-purple-600 space-y-1">
-            <li>• Include key concepts, definitions, and important facts</li>
-            <li>• Works best with structured content like textbook chapters</li>
-            <li>• AI generates multiple choice, true/false, and short answer questions</li>
-          </ul>
-        </div>
+        {isQuizActive && currentQuestion && (
+          /* Active Quiz Interface */
+          <div className="space-y-6">
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-neutral-700">
+                  Question {currentQuestionIndex + 1} of {quiz.length}
+                </span>
+                <span className="text-sm text-neutral-600">
+                  {difficulty} Level
+                </span>
+              </div>
+              <div className="w-full bg-white/20 rounded-full h-3">
+                <div 
+                  className="h-3 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full transition-all duration-500"
+                  style={{ width: `${((currentQuestionIndex + 1) / quiz.length) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Question */}
+            <div className="text-center mb-8">
+              <h4 className="text-xl font-serif font-bold text-neutral-800 mb-6 leading-relaxed">
+                {currentQuestion.question}
+              </h4>
+            </div>
+
+            {/* Answer Options */}
+            <div className="space-y-4 mb-8">
+              {currentQuestion.options.map((option, index) => (
+                <button
+                  key={index}
+                  onClick={() => selectAnswer(index)}
+                  className={`w-full p-4 rounded-2xl border-2 transition-all duration-300 text-left ${
+                    selectedAnswer === index
+                      ? 'bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border-purple-500 shadow-lg transform scale-105'
+                      : 'bg-white/20 border-white/30 hover:bg-white/30 hover:border-white/50 hover:transform hover:scale-102'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold ${
+                      selectedAnswer === index
+                        ? 'bg-purple-500 border-purple-500 text-white'
+                        : 'border-neutral-400 text-neutral-600'
+                    }`}>
+                      {String.fromCharCode(65 + index)}
+                    </div>
+                    <span className="text-neutral-800 font-medium">{option}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Navigation Buttons */}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={previousQuestion}
+                disabled={currentQuestionIndex === 0}
+                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 px-6 py-3 rounded-xl font-medium hover:bg-white/30 hover:border-white/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Previous</span>
+              </button>
+
+              <button
+                onClick={nextQuestion}
+                disabled={selectedAnswer === null}
+                className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              >
+                <span>{currentQuestionIndex === quiz.length - 1 ? 'Finish Quiz' : 'Next'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showResults && (
+          /* Quiz Results */
+          <div className="space-y-6">
+            {/* Score Header */}
+            <div className="text-center mb-8">
+              <div className={`w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg ${
+                percentage >= 50 
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 glow-success animate-bounce' 
+                  : 'bg-gradient-to-r from-red-500 to-orange-500'
+              }`}>
+                {percentage >= 50 ? (
+                  <Trophy className="w-12 h-12 text-white" />
+                ) : (
+                  <Target className="w-12 h-12 text-white" />
+                )}
+              </div>
+              
+              <h4 className="text-3xl font-serif font-bold text-neutral-800 mb-2">
+                {percentage >= 50 ? '🎉 Congratulations!' : '📚 Keep Learning!'}
+              </h4>
+              
+              <div className="text-6xl font-bold mb-4">
+                <span className={percentage >= 50 ? 'text-green-600' : 'text-orange-600'}>
+                  {Math.round(percentage)}%
+                </span>
+              </div>
+              
+              <p className="text-xl text-neutral-600 mb-4">
+                You got {correctAnswers} out of {totalQuestions} questions correct
+              </p>
+              
+              {percentage >= 50 ? (
+                <p className="text-green-600 font-medium">
+                  Excellent work! You've mastered this topic! 🌟
+                </p>
+              ) : (
+                <p className="text-orange-600 font-medium">
+                  Don't worry! Review the explanations and try again. 💪
+                </p>
+              )}
+            </div>
+
+            {/* Detailed Results */}
+            <div className="space-y-4">
+              <h5 className="text-lg font-serif font-bold text-neutral-800 mb-4 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-purple-600" />
+                Detailed Results
+              </h5>
+              
+              {quiz.map((question, index) => {
+                const result = quizResults[index];
+                const isCorrect = result?.isCorrect;
+                
+                return (
+                  <div key={index} className={`p-6 rounded-2xl border ${
+                    isCorrect 
+                      ? 'bg-green-50/80 border-green-200/50' 
+                      : 'bg-red-50/80 border-red-200/50'
+                  }`}>
+                    <div className="flex items-start gap-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
+                        isCorrect ? 'bg-green-500' : 'bg-red-500'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <h6 className="font-semibold text-neutral-800 mb-3">
+                          {question.question}
+                        </h6>
+                        
+                        <div className="space-y-2 mb-4">
+                          {question.options.map((option, optIndex) => (
+                            <div
+                              key={optIndex}
+                              className={`p-3 rounded-xl border transition-colors ${
+                                optIndex === question.correctAnswer
+                                  ? 'bg-green-100/80 border-green-300 text-green-800'
+                                  : optIndex === result?.selectedAnswer && !isCorrect
+                                    ? 'bg-red-100/80 border-red-300 text-red-800'
+                                    : 'bg-white/80 border-neutral-200 text-neutral-700'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="font-bold">
+                                  {String.fromCharCode(65 + optIndex)}.
+                                </span>
+                                <span>{option}</span>
+                                {optIndex === question.correctAnswer && (
+                                  <CheckCircle className="w-4 h-4 text-green-600 ml-auto" />
+                                )}
+                                {optIndex === result?.selectedAnswer && !isCorrect && (
+                                  <X className="w-4 h-4 text-red-600 ml-auto" />
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {question.explanation && (
+                          <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-200">
+                            <p className="text-sm text-blue-700">
+                              <strong>Explanation:</strong> {question.explanation}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {user && currentSessionId && (
+              <div className="p-4 bg-blue-100/60 backdrop-blur-sm rounded-xl border border-blue-200/50">
+                <p className="text-sm text-blue-700">
+                  ✅ Your quiz results have been saved to track your learning progress and performance trends.
+                </p>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-center gap-4 pt-6">
+              <button
+                onClick={() => {
+                  setShowResults(false);
+                  startQuiz();
+                }}
+                className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300 shadow-lg"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Retake Quiz</span>
+              </button>
+              
+              <button
+                onClick={resetQuiz}
+                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 px-6 py-3 rounded-xl font-medium hover:bg-white/30 hover:border-white/50 transition-all duration-300"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>Create New Quiz</span>
+              </button>
+              
+              <button
+                onClick={handleDownload}
+                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 px-6 py-3 rounded-xl font-medium hover:bg-white/30 hover:border-white/50 transition-all duration-300"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download Results</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </>
   );
 };
 

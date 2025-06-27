@@ -66,10 +66,11 @@ const Landing: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
       {/* Navigation */}
-      <nav className="relative z-50 px-6 py-4">
+      <nav className="relative glass-card z-50 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
+              
               <div className="w-10 h-10 bg-gradient-to-br from-lavender-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
                 <Sparkles className="w-5 h-5 text-white" />
                </div>
@@ -110,9 +111,25 @@ const Landing: React.FC = () => {
             <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-2xl flex items-center justify-center mx-auto glow-primary animate-float mb-5">
               <Brain className="w-12 h-12 group-hover:-translate-x-1 transition-transform" />
             </div>
-            <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
-              <Sparkles className="w-4 h-4 text-white" />
+             <div className="absolute -top-2 -right-2 w-15 h-15 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
+               <a
+                href="https://bolt.new/"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Powered by Bolt.new"
+                className="block w-16 h-16"
+              >
+             <img
+                src='../../white_bolt.png'
+                alt="Bolt.new logo"
+                className="w-16 h-16 object-contain"
+                draggable={false}
+              />
+               </a>
             </div>
+              <div className="absolute -bottom-2 -left-2 w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse-slow">
+                  <Sparkles className="w-4 h-4 text-white" />
+               </div>
           </div>
 
           <h1 className="text-6xl md:text-7xl font-serif font-bold bg-clip-text text-transparent mb-6 leading-tight text-gradient">

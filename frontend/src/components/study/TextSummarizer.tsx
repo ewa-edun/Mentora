@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Type, Sparkles, Loader2, Copy, CheckCircle, Download, RotateCcw } from 'lucide-react';
 import { summarizeText } from '../../services/api';
+import {  getCurrentUser,  createStudySession,  updateStudySession,  endStudySession, updateLearningProgress } from '../../services/firebase';
 
 const TextSummarizer: React.FC = () => {
   const [inputText, setInputText] = useState('');
@@ -8,25 +9,86 @@ const TextSummarizer: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
 
   const handleSubmit = async () => {
     if (!inputText.trim()) {
       setError('Please enter some text to summarize');
       return;
     }
+
+    if (!user) {
+      setError('Please sign in to use this feature');
+      return;
+    }
     
     setIsProcessing(true);
     setError('');
 
-    const result = await summarizeText(inputText);
-    
-    if (result.success && result.data) {
-      setSummary(result.data.Summary);
-    } else {
-      setError(result.error || 'Failed to summarize text');
+    try {
+      // Create study session
+      const sessionId = await createStudySession({
+        userId: user.uid,
+        mode: 'study',
+        type: 'text_summary',
+        startTime: new Date(),
+        content: {
+          input: inputText
+        },
+        metadata: {
+          wordCount: inputText.trim().split(/\s+/).length,
+          topic: 'Text Summary'
+        }
+      });
+      setCurrentSessionId(sessionId);
+
+      // Get summary from API
+      const result = await summarizeText(inputText);
+      
+      if (result.success && result.data) {
+        setSummary(result.data.Summary);
+        
+        // Update session with results
+        await updateStudySession(sessionId, {
+          content: {
+            input: inputText,
+            summary: result.data.Summary
+          }
+        });
+
+        // Update learning progress
+        await updateLearningProgress({
+          userId: user.uid,
+          topic: 'Text Summarization',
+          difficulty: 'intermediate',
+          progress: 100,
+          timeSpent: 0, // Will be calculated when session ends
+          quizScores: [],
+          mastered: false
+        });
+
+      } else {
+        setError(result.error || 'Failed to summarize text');
+        // Update session with error
+        await updateStudySession(sessionId, {
+          content: {
+            input: inputText,
+            summary: `Error: ${result.error || 'Failed to summarize text'}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error in text summarization:', error);
+      setError('An unexpected error occurred');
+    } finally {
+      setIsProcessing(false);
     }
-    
-    setIsProcessing(false);
   };
 
   const handleCopy = async () => {
@@ -51,11 +113,21 @@ const TextSummarizer: React.FC = () => {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    // End current session if exists
+    if (currentSessionId && user) {
+      try {
+        await endStudySession(currentSessionId, user.uid);
+      } catch (error) {
+        console.error('Error ending session:', error);
+      }
+    }
+
     setInputText('');
     setSummary('');
     setError('');
     setCopied(false);
+    setCurrentSessionId(null);
   };
 
   const wordCount = inputText.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -80,7 +152,7 @@ const TextSummarizer: React.FC = () => {
               setError('');
             }}
             placeholder="Paste your text here... (articles, essays, research papers, notes, etc.)"
-            className="w-full h-40 px-4 py-3 border-2 border-line border-gray-300 hover:border-blue-400 rounded-2xl bg-white/20 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all resize-none"
+            className="w-full h-40 px-4 py-3 rounded-2xl border border-blue-200 bg-white/30 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/40 focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all duration-300 resize-none"
             maxLength={10000}
           />
           <div className="absolute bottom-3 right-3 text-xs text-neutral-500">
@@ -99,7 +171,7 @@ const TextSummarizer: React.FC = () => {
         <div className="flex gap-3">
           <button
             onClick={handleSubmit}
-            disabled={!inputText.trim() || isProcessing}
+            disabled={!inputText.trim() || isProcessing || !user}
             className="flex-1 flex items-center justify-center space-x-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white py-4 px-6 rounded-2xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-105 transition-all duration-300 shadow-lg"
           >
             {isProcessing ? (
@@ -118,7 +190,7 @@ const TextSummarizer: React.FC = () => {
           {(inputText || summary) && (
             <button
               onClick={handleReset}
-              className="flex items-center justify-center px-4 py-4 bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 rounded-2xl hover:bg-white/30 hover:border-white/50 transition-all duration-300"
+              className="flex items-center justify-center px-4 py-4 bg-white/40 backdrop-blur-sm border border-white/50 text-neutral-700 rounded-2xl hover:bg-white/50 hover:border-white/60 transition-all duration-300"
             >
               <RotateCcw className="w-5 h-5" />
             </button>
@@ -172,6 +244,7 @@ const TextSummarizer: React.FC = () => {
             <li>• Paste complete articles or documents for best results</li>
             <li>• Works great with academic papers, news articles, and research</li>
             <li>• Minimum 50 words recommended for meaningful summaries</li>
+            {!user && <li>• <strong>Sign in to track your study progress and save summaries</strong></li>}
           </ul>
         </div>
       </div>
