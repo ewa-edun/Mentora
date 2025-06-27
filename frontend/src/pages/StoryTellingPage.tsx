@@ -1,21 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX, Sparkles, Star, BookOpen,  Settings, Download, Share2, Loader2, CheckCircle, AlertTriangle, Square } from 'lucide-react';
-import { getCurrentUser } from '../services/firebase';
-import { generateStory, generateVoiceNarration, generateAvatarVideo, getStoryCharacters, StoryCharacter } from '../services/api';
+import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX,Sparkles,Star,BookOpen,
+Settings,Download,Share2,Loader2,CheckCircle,AlertTriangle,Square,Clock,History
+} from 'lucide-react';
+import { getCurrentUser, createStorySession, updateStorySession, getUserStorySessions, rateStorySession, StorySession } from '../services/firebase';
+import { generateStory, generateVoiceNarration, generateAvatarVideo, getStoryCharacters,StoryCharacter } from '../services/api';
 import VoicePanel from '../components/VoicePanel';
 
-
-interface StorySession {
-  id: string;
-  title: string;
-  content: string;
-  character: StoryCharacter;
-  emotion: string;
-  duration: number;
-  audioUrl?: string;
-  videoUrl?: string;
-}
 
 const StorytellingPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -24,12 +15,14 @@ const StorytellingPage: React.FC = () => {
   const [selectedCharacter, setSelectedCharacter] = useState<StoryCharacter | null>(null);
   const [availableCharacters, setAvailableCharacters] = useState<StoryCharacter[]>([]);
   const [currentStory, setCurrentStory] = useState<StorySession | null>(null);
+  const [recentStories, setRecentStories] = useState<StorySession[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingVoice, setIsGeneratingVoice] = useState(false);
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [avatarEnabled, setAvatarEnabled] = useState(true);
   const [error, setError] = useState('');
@@ -40,24 +33,25 @@ const StorytellingPage: React.FC = () => {
   const [voicePitch, setVoicePitch] = useState(1);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const navigate = useNavigate();
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
-      navigate('/login');
-      return;
-    }
-    setUser(currentUser);
-    loadCharacters();
-    if ('speechSynthesis' in window) {
-      synthRef.current = window.speechSynthesis;
-    }
-  }, [navigate]);
+      const currentUser = getCurrentUser();
+      if (!currentUser) {
+        navigate('/login');
+        return;
+      }
+      setUser(currentUser);
+      loadCharacters();
+      loadRecentStories(currentUser.uid);
+      if ('speechSynthesis' in window) {
+        synthRef.current = window.speechSynthesis;
+      }
+    }, [navigate]);
 
   const loadCharacters = async () => {
     try {
@@ -71,6 +65,77 @@ const StorytellingPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading characters:', error);
+    }
+  };
+
+  const loadRecentStories = async (userId: string) => {
+    try {
+      const stories = await getUserStorySessions(userId, 5);
+      setRecentStories(stories);
+    } catch (error) {
+      console.error('Error loading recent stories:', error);
+    }
+  };
+
+  const saveStorySession = async (storyData: Partial<StorySession>) => {
+    if (!user) return null;
+
+    try {
+      const sessionData = {
+        userId: user.uid,
+        title: storyData.title || '',
+        content: storyData.content || '',
+        character: storyData.character || selectedCharacter!,
+        emotion: storyData.emotion || selectedEmotion,
+        topic: storyData.topic || selectedTopic,
+        duration: storyData.duration || 240,
+        actualDuration: sessionStartTime ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000) : 0,
+        hasAudio: !!storyData.audioUrl,
+        hasVideo: !!storyData.videoUrl,
+        audioUrl: storyData.audioUrl,
+        videoUrl: storyData.videoUrl,
+        completed: storyData.completed || false,
+        startTime: sessionStartTime || new Date(),
+        endTime: storyData.completed ? new Date() : undefined,
+        ...storyData
+      };
+
+      const storyId = await createStorySession(sessionData);
+      await loadRecentStories(user.uid);
+      return storyId;
+    } catch (error) {
+      console.error('Error saving story session:', error);
+      return null;
+    }
+  };
+
+  const loadStory = (story: StorySession) => {
+    const storySession: StorySession = {
+      ...story,
+      character: {
+        id: story.character.id,
+        name: story.character.name,
+        personality: story.character.personality,
+        avatar: story.character.avatar
+      }
+    };
+
+    setCurrentStory(storySession);
+    setSelectedTopic(story.topic);
+    setSelectedEmotion(story.emotion);
+    setSelectedCharacter(story.character as StoryCharacter);
+    setShowHistory(false);
+  };
+
+  const rateStory = async (rating: number) => {
+    if (!currentStory?.id) return;
+
+    try {
+      await rateStorySession(currentStory.id, rating);
+      setCurrentStory({ ...currentStory, rating });
+      await loadRecentStories(user.uid);
+    } catch (error) {
+      console.error('Error rating story:', error);
     }
   };
 
@@ -92,6 +157,7 @@ const StorytellingPage: React.FC = () => {
     setIsGenerating(true);
     setError('');
     setProgress(0);
+    setSessionStartTime(new Date());
     
     try {
       // Step 1: Generate story content
@@ -108,16 +174,28 @@ const StorytellingPage: React.FC = () => {
       }
 
       const newStory: StorySession = {
-        id: Date.now().toString(),
+        userId: user.uid,
         title: storyResult.data.title,
         content: storyResult.data.content,
         character: selectedCharacter,
         emotion: selectedEmotion,
-        duration: storyResult.data.duration
+        topic: selectedTopic,
+        duration: storyResult.data.duration,
+        hasAudio: false,
+        hasVideo: false,
+        completed: false,
+        startTime: sessionStartTime,
+        createdAt: new Date() 
       };
 
       setCurrentStory(newStory);
       setProgress(50);
+
+      // Save initial story session
+      const storyId = await saveStorySession(newStory);
+      if (storyId) {
+        setCurrentStory({ ...newStory, id: storyId });
+      }
 
       // Step 2: Generate voice narration if enabled
       if (voiceEnabled) {
@@ -130,8 +208,13 @@ const StorytellingPage: React.FC = () => {
           );
           
           if (voiceResult.success && voiceResult.data) {
-            newStory.audioUrl = voiceResult.data.audioUrl;
-            setCurrentStory({ ...newStory });
+            const updatedStory = { ...newStory, audioUrl: voiceResult.data.audioUrl, hasAudio: true };
+            setCurrentStory(updatedStory);
+            
+            // Update story session
+            if (storyId) {
+              await updateStorySession(storyId, { audioUrl: voiceResult.data.audioUrl, hasAudio: true });
+            }
           }
         } catch (voiceError) {
           console.warn('Voice generation failed:', voiceError);
@@ -151,8 +234,13 @@ const StorytellingPage: React.FC = () => {
           );
           
           if (videoResult.success && videoResult.data) {
-            newStory.videoUrl = videoResult.data.videoUrl;
-            setCurrentStory({ ...newStory });
+            const updatedStory = { ...newStory, videoUrl: videoResult.data.videoUrl, hasVideo: true };
+            setCurrentStory(updatedStory);
+            
+            // Update story session
+            if (storyId) {
+              await updateStorySession(storyId, { videoUrl: videoResult.data.videoUrl, hasVideo: true });
+            }
           }
         } catch (videoError) {
           console.warn('Video generation failed:', videoError);
@@ -161,6 +249,11 @@ const StorytellingPage: React.FC = () => {
       }
 
       setProgress(100);
+      
+      // Mark story as completed
+      if (storyId) {
+        await updateStorySession(storyId, { completed: true, endTime: new Date() });
+      }
       
     } catch (error) {
       console.error('Error generating story:', error);
@@ -328,6 +421,23 @@ const StorytellingPage: React.FC = () => {
     return 'Story ready!';
   };
 
+  const formatStoryTime = (timestamp: any) => {
+    if (!timestamp) return '';
+    
+    let date;
+    if (timestamp.toDate) {
+      date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
+    } else if (timestamp.seconds) {
+      date = new Date(timestamp.seconds * 1000);
+    } else {
+      return '';
+    }
+    
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 relative overflow-hidden">
       {/* Animated background elements */}
@@ -342,34 +452,102 @@ const StorytellingPage: React.FC = () => {
         {/* Header */}
         <header className="backdrop-blur-xl glass-card bg-white/10 border-b border-white/20 px-6 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <Link to="/home" className="flex items-center gap-3 group">
-              <ArrowLeft className="w-5 h-5 text-primary-600 group-hover:-translate-x-1 transition-transform" />
-              <span className="text-primary-600 font-medium">Back to Home</span>
-            </Link>
-            
+           <Link to="/home" className="flex items-center gap-3 group">
+            <ArrowLeft className="w-5 h-5 text-primary-600 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-primary-600 font-medium">Back to Home</span>
+          </Link> 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-4 backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl px-6 py-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center glow-primary animate-float">
+               <div className="flex items-center gap-4 backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl px-6 py-3">
+                 <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center glow-primary animate-float">
                   <BookOpen className="w-6 h-6 text-white" />
-                </div>
+                 </div>
                 <div>
                   <h1 className="text-xl font-serif font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                    Story Mode
-                  </h1>
-                  <p className="text-sm text-neutral-600">Learn through magical stories</p>
-                </div>
-              </div>
-            </div>
+                       Story Mode
+                   </h1>
+                 <p className="text-sm text-neutral-600">Learn through magical stories</p>
+               </div>
+             </div>
+           </div>
 
             <div className="flex items-center gap-3">
               <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="p-3 rounded-xl backdrop-blur-xl bg-white/30 border border-white/40 text-neutral-700 hover:text-neutral-800 hover:bg-white/40 transition-all duration-300"
+              >
+                <History className="w-5 h-5" />
+              </button>
+
+              <button
                 onClick={() => setShowSettings(!showSettings)}
-                className="p-3 rounded-xl backdrop-blur-xl bg-white/20 border border-white/30 text-neutral-700 hover:text-neutral-800 hover:bg-white/30 transition-all duration-300"
+                className="p-3 rounded-xl backdrop-blur-xl bg-white/30 border border-white/40 text-neutral-700 hover:text-neutral-800 hover:bg-white/40 transition-all duration-300"
               >
                 <Settings className="w-5 h-5" />
               </button>
             </div>
           </div>
+
+          {/* Story History Panel */}
+          {showHistory && (
+            <div className="max-w-6xl mx-auto mt-4 p-6 backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-xl">
+              <h3 className="text-lg font-serif font-bold text-neutral-800 mb-4">Recent Stories</h3>
+              
+              {recentStories.length > 0 ? (
+                <div className="space-y-3">
+                  {recentStories.map((story, index) => (
+                    <div
+                      key={story.id || index}
+                      onClick={() => loadStory(story)}
+                      className="p-4 bg-white/20 rounded-xl border border-white/30 hover:bg-white/30 cursor-pointer transition-all duration-300"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className="text-2xl">{story.character.avatar}</span>
+                            <div>
+                              <p className="font-medium text-neutral-800">{story.title}</p>
+                              <p className="text-sm text-neutral-600">by {story.character.name}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-neutral-600">
+                            <span className="flex items-center gap-1">
+                              <BookOpen className="w-4 h-4" />
+                              {story.topic}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              {Math.floor((story.actualDuration || 0) / 60)}m
+                            </span>
+                            <span>{formatStoryTime(story.createdAt)}</span>
+                            {story.rating && (
+                              <div className="flex items-center gap-1">
+                                {[...Array(story.rating)].map((_, i) => (
+                                  <Star key={i} className="w-3 h-3 text-amber-400 fill-current" />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-2 mt-2">
+                            {story.hasAudio && (
+                              <span className="bg-green-100/60 text-green-700 px-2 py-1 rounded-lg text-xs">Audio</span>
+                            )}
+                            {story.hasVideo && (
+                              <span className="bg-blue-100/60 text-blue-700 px-2 py-1 rounded-lg text-xs">Video</span>
+                            )}
+                            {story.completed && (
+                              <span className="bg-purple-100/60 text-purple-700 px-2 py-1 rounded-lg text-xs">Completed</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-neutral-600 text-center py-8">No stories created yet. Generate your first magical story!</p>
+              )}
+            </div>
+          )}
 
           {/* Settings Panel */}
           {showSettings && (
@@ -431,7 +609,7 @@ const StorytellingPage: React.FC = () => {
                     </div>
                   </div>
                   
-                  <h2 className="text-6xl font-serif font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+                   <h2 className="text-6xl font-serif font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
                     Welcome to Story Mode, {getUserDisplayName()}! ✨
                   </h2>
                   <p className="text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
@@ -456,7 +634,7 @@ const StorytellingPage: React.FC = () => {
                 <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
                   <h3 className="text-xl font-serif font-bold text-neutral-800 mb-6">Choose your story companion</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {availableCharacters.map((character) => (
+                     {availableCharacters.map((character) => (
                       <div
                         key={character.id}
                         onClick={() => setSelectedCharacter(character)}
@@ -478,7 +656,7 @@ const StorytellingPage: React.FC = () => {
                 </div>
 
                 {/* Emotion/Theme Selection */}
-                <div className="backdrop-blur-xl bg-white/20 border border-white/30 rounded-2xl p-8 shadow-xl">
+                <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
                   <h3 className="text-xl font-serif font-bold text-neutral-800 mb-6">What's your current mood?</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     {Object.entries(emotionThemes).map(([emotion, theme]) => (
@@ -571,35 +749,43 @@ const StorytellingPage: React.FC = () => {
                             </div>
                           )}
                           {currentStory.videoUrl && (
-                            <div className="flex items-center gap-1 text-blue-600">
+                            <div className="flex items-center gap-1 text-green-600">
                               <CheckCircle className="w-4 h-4" />
                               <span className="text-sm">Video Ready</span>
+                            </div>
+                          )}
+                          {sessionStartTime && (
+                            <div className="flex items-center gap-1 text-purple-600">
+                              <Clock className="w-4 h-4" />
+                              <span className="text-sm">
+                                {Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 60000)}m session
+                              </span>
                             </div>
                           )}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <button
-                        onClick={handleDownload}
-                        className="p-3 bg-white/50 rounded-xl text-neutral-700 hover:bg-white/100 transition-colors"
-                      >
-                        <Download className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={handleShare}
-                        className="p-3 bg-white/50 rounded-xl text-neutral-700 hover:bg-white/100 transition-colors"
-                      >
-                        <Share2 className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => setCurrentStory(null)}
-                        className="p-3 bg-white/50 rounded-xl text-neutral-700 hover:bg-white/100 transition-colors"
-                      >
-                        <RotateCcw className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
+                     <button
+                      onClick={handleDownload}
+                      className="p-3 bg-white/50 rounded-xl text-neutral-700 hover:bg-white/100 transition-colors"
+                    >
+                     <Download className="w-5 h-5" />
+                    </button>
+                    <button
+                     onClick={handleShare}
+                    className="p-3 bg-white/50 rounded-xl text-neutral-700 hover:bg-white/100 transition-colors"
+                  >
+                  <Share2 className="w-5 h-5" />
+                </button>
+                 <button
+                  onClick={() => setCurrentStory(null)}
+                 className="p-3 bg-white/50 rounded-xl text-neutral-700 hover:bg-white/100 transition-colors"
+                 >
+                  <RotateCcw className="w-5 h-5" />
+                 </button>
+               </div>
+             </div>
 
                   {/* Avatar Video Player */}
                   {currentStory.videoUrl && (
@@ -690,6 +876,24 @@ const StorytellingPage: React.FC = () => {
                     >
                       {voiceEnabled ? <Volume2 className="w-6 h-6" /> : <VolumeX className="w-6 h-6" />}
                     </button>
+                  </div>
+
+                  {/* Story Rating */}
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <span className="text-sm text-neutral-600 mr-2">Rate this story:</span>
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <button
+                        key={rating}
+                        onClick={() => rateStory(rating)}
+                        className={`p-1 transition-colors ${
+                          currentStory.rating && rating <= currentStory.rating
+                            ? 'text-amber-400'
+                            : 'text-neutral-300 hover:text-amber-400'
+                        }`}
+                      >
+                        <Star className="w-5 h-5 fill-current" />
+                      </button>
+                    ))}
                   </div>
                 </div>
 

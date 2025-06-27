@@ -845,6 +845,71 @@ export const getUserVoiceChats = async (userId: string, limitCount: number = 5):
 export { serverTimestamp };
 
 // =============================================================================
+// STORYTELLING FUNCTIONS
+// =============================================================================
+// Create a new story session
+export const createStorySession = async (sessionData: Omit<StorySession, 'id' | 'createdAt'>): Promise<string> => {
+  try {
+    const sessionsRef = collection(db, 'storySessions');
+    const docRef = await addDoc(sessionsRef, {
+      ...sessionData,
+      createdAt: serverTimestamp()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error creating story session:', error);
+    throw error;
+  }
+};
+
+// Update a story session
+export const updateStorySession = async (sessionId: string, data: Partial<StorySession>): Promise<void> => {
+  try {
+    const sessionRef = doc(db, 'storySessions', sessionId);
+    await updateDoc(sessionRef, data);
+  } catch (error) {
+    console.error('Error updating story session:', error);
+    throw error;
+  }
+};
+
+// Get user's story sessions
+export const getUserStorySessions = async (userId: string, limitCount: number = 5): Promise<StorySession[]> => {
+  try {
+    const sessionsRef = collection(db, 'storySessions');
+    const q = query(
+      sessionsRef,
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc'),
+      limit(limitCount)
+    );
+    const querySnapshot = await getDocs(q);
+    const sessions: StorySession[] = [];
+    querySnapshot.forEach((docSnap) => {
+      sessions.push({
+        id: docSnap.id,
+        ...docSnap.data()
+      } as StorySession);
+    });
+    return sessions;
+  } catch (error) {
+    console.error('Error getting story sessions:', error);
+    throw error;
+  }
+};
+
+// Rate a story session
+export const rateStorySession = async (sessionId: string, rating: number): Promise<void> => {
+  try {
+    const sessionRef = doc(db, 'storySessions', sessionId);
+    await updateDoc(sessionRef, { rating });
+  } catch (error) {
+    console.error('Error rating story session:', error);
+    throw error;
+  }
+};
+
+// =============================================================================
 // ANALYTICS & INSIGHTS FUNCTIONS
 // =============================================================================
 

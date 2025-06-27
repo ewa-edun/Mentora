@@ -116,3 +116,9 @@ Provide the email used to build the project on Bolt.new. This email must be asso
      - Built personalized activity recommendation engine with 6+ emotion categories
      - Created dynamic UI that adapts colors, messaging, and suggestions based on emotional state
 
+
+firebase.ts:860 Error creating story session: FirebaseError: Function addDoc() called with invalid data. Unsupported field value: undefined (found in field audioUrl in document storySessions/9mwmV4Kd4qzxbiLlyQGq)
+StoryTellingPage.tsx:107 Error saving story session: FirebaseError: Function addDoc() called with invalid data. Unsupported field value: undefined (found in field audioUrl in document storySessions/9mwmV4Kd4qzxbiLlyQGq)
+saveStorySession	@	StoryTellingPage.tsx:107
+await in saveStorySession		
+handleGenerateStory	@	StoryTellingPage.tsx:195
