@@ -121,16 +121,22 @@ const VoicePage: React.FC = () => {
           id: msg.id,
           type: msg.type,
           content: msg.content,
-          timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(),
+          timestamp:
+            msg.timestamp instanceof Date && !isNaN(msg.timestamp.getTime())
+               ? msg.timestamp
+               : new Date(),
          ...(msg.isVoice !== undefined && { isVoice: msg.isVoice }),
         ...(msg.emotion !== undefined && { emotion: msg.emotion }),
         })),
-        startTime: sessionStartTime || serverTimestamp(),
+        startTime:
+          sessionStartTime instanceof Date && !isNaN(sessionStartTime.getTime())
+           ? sessionStartTime
+           : serverTimestamp(),
         endTime: serverTimestamp(),
         duration: sessionStartTime ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 1000) : 0,
         totalMessages: messages.length,
        ...(extractTopicsFromMessages(messages).length > 0 && { topics: extractTopicsFromMessages(messages) }),
-  ...(generateChatSummary(messages) && { summary: generateChatSummary(messages) }),
+       ...(generateChatSummary(messages) && { summary: generateChatSummary(messages) }),
       };
 
        let chatId = currentChatId;
@@ -142,7 +148,6 @@ const VoicePage: React.FC = () => {
     }
 
     setSavedChatId(chatId || null); // <-- Mark as saved
-
 
       // Reload recent chats
       await loadRecentChats(user.uid);
@@ -160,7 +165,12 @@ const VoicePage: React.FC = () => {
       id: msg.id,
       type: msg.type,
       content: msg.content,
-      timestamp: msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp?.toString() || Date.now()),
+      timestamp:
+        msg.timestamp instanceof Date && !isNaN(msg.timestamp.getTime())
+          ? msg.timestamp
+          : (msg.timestamp && typeof (msg.timestamp as any).toDate === 'function'
+              ? (msg.timestamp as any).toDate()
+              : new Date()),
       isVoice: msg.isVoice,
       emotion: msg.emotion
     }));
