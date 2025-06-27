@@ -893,12 +893,13 @@ const VoicePage: React.FC = () => {
                       {isPaused ? 'Speech paused' : 'Speaking response...'}
                     </span>
                   )}
-                  {sessionStartTime && (
-                    <span className="flex items-center gap-2 text-blue-600">
-                      <Clock className="w-3 h-3" />
-                      Session: {Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 60000)}m
-                    </span>
-                  )}
+                  <span className="flex items-center gap-2 text-blue-600">
+                    <Clock className="w-3 h-3" />
+                    Session: {sessionStartTime instanceof Date && !isNaN(sessionStartTime.getTime())
+                    ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 60000)
+                    : 0}m
+                  </span>
+                  
                 </div>
                 <div className="flex items-center gap-4">
                   <span>Press Enter to send</span>

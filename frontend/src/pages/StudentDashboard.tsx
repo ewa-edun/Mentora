@@ -1262,10 +1262,50 @@ useEffect(() => {
                           </div>
                         )}
                     </div>
-                               ))}
-                             </div>
+                   ))}
+                  </div>
+                </div>
+               )}
+                {/* Additional Features */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     {/* Voice Assistant */}
+                     <Link to="/voice" className="group">
+                        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 hover:bg-white/20 hover:border-white/30 transition-all duration-300 transform hover:scale-105">
+                          <div className="flex items-center gap-4 mb-4">
+                           <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Mic className="w-8 h-8 text-white" />
+                            </div>
+                             <div>
+                               <h3 className="text-xl font-serif font-bold text-neutral-800">🎙️ Voice Assistant</h3>
+                              <p className="text-neutral-600">Chat with AI using your voice</p>
                            </div>
-                       )}
+                             </div>
+                              <div className="flex items-center gap-2 text-blue-600 group-hover:text-blue-700 transition-colors">
+                              <span className="font-medium">Start Voice Chat</span>
+                              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                             </div>
+                            </div>
+                          </Link>
+                       
+                        {/* Storytelling */}
+                          <Link to="/storytelling" className="group">
+                           <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 hover:bg-white/20 hover:border-white/30 transition-all duration-300 transform hover:scale-105">
+                             <div className="flex items-center gap-4 mb-4">
+                               <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <BookOpen className="w-8 h-8 text-white" />
+                                   </div>
+                                   <div>
+                              <h3 className="text-xl font-serif font-bold text-neutral-800">📖 Story Mode</h3>
+                                  <p className="text-neutral-600">Learn through magical stories</p>
+                                  </div>
+                              </div>
+                                 <div className="flex items-center gap-2 text-purple-600 group-hover:text-purple-700 transition-colors">
+                                   <span className="font-medium">Create Stories</span>
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                 </div>
+                                </div>
+                              </Link>
+                            </div>
 
             {/* Error Display */}
             {error && (
