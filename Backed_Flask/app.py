@@ -44,7 +44,8 @@ def welcome():
             '/api/generate-voice',
             '/api/characters',
             '/api/analytics/charts',
-            '/api/analytics/insights'
+            '/api/analytics/insights',
+            '/api/transcribe',
         ]
     })
 

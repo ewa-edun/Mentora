@@ -471,6 +471,32 @@ export const getStoryCharacters = async (): Promise<ApiResponse<{ characters: St
   }
 };
 
+//transcribe audio
+export const transcribeAudio = async (file: File): Promise<ApiResponse<{ transcription: string }>> => {
+  try {
+    const formData = new FormData();
+    formData.append('audio', file);
+
+    const response = await fetch(`${API_BASE_URL}/api/transcribe`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error transcribing audio:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to transcribe audio' 
+    };
+  }
+};
+
 // Get chart data for analytics
 export const getChartData = async (
   userId: string,

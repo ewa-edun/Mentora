@@ -6,11 +6,11 @@ transcribe_bp = Blueprint("transcribe",__name__)
 
 upload_floder = 'upload'
 
-@transcribe_bp.route("/transcribe", methods=["POST"])
+@transcribe_bp.route("/api/transcribe", methods=["POST"])
 def transcribe():
     if 'audio' not in request.files:
-        return jsonify({{"error": "No audio file uploaded"}}),400
-    
+        return jsonify({"error": "No audio file uploaded"}),400
+
     audio = request.files['audio']
     os.makedirs(upload_floder,exist_ok=True)
     file_path = os.path.join(upload_floder,audio.filename)

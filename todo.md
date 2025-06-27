@@ -105,6 +105,7 @@ Provide the email used to build the project on Bolt.new. This email must be asso
 3. Fix the elevenlabs and tavus issue
 4. Deploy and get Custom Domain via Entri integration.
 5. Finish Demo Video.
+6. Integerate assemblyai with voice chat page.
 
 6. Integerate with RevenueCat for subscription. 
 10. Integerate Adaptive Recommendations: AI learns your preferences and suggests optimal study strategies.
