@@ -102,12 +102,9 @@ Provide the email used to build the project on Bolt.new. This email must be asso
 
 1. PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
 2. Add two files as backup demo data: /demo/avatar-video.mp4 and /demo/voice-narration.mp3
-3. Fix the elevenlabs and tavus issue
+3. Fix the elevenlabs, tavus and tanscribe audion issue
 4. Deploy and get Custom Domain via Entri integration.
 5. Finish Demo Video.
-6. Integerate assemblyai with voice chat page.
-
-- **Smart Reminders**: Suggests when to break, revise, or slow down.
 
 
 9. Integerate with RevenueCat for subscription. 

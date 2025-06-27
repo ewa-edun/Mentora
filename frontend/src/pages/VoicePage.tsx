@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Send, Loader2, Brain, Sparkles,MessageCircle,Copy,CheckCircle,Settings,Heart,Star,Trash2,Download,Share2,Pause,Play,Square,Clock,History} from 'lucide-react';
 import { askQuestion, transcribeAudio } from '../services/api';
 import { getCurrentUser, createVoiceChat, updateVoiceChat, getUserVoiceChats, VoiceChat,serverTimestamp } from '../services/firebase';
+import SmartReminders from '../components/SmartReminders';
 
 interface Message {
   id: string;
@@ -34,6 +35,8 @@ const VoicePage: React.FC = () => {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [isRecording, setIsRecording] = useState(false);
+  const [messages, setMessages] = useState<string[]>([]);
+  const [currentEmotion, setCurrentEmotion] = useState<string>('neutral');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -661,6 +664,11 @@ const handleTranscribeAudio = async (audioBlob: Blob) => {
 
         {/* Messages Area */}
         <main className="flex-1 px-6 py-8 overflow-hidden">
+          <SmartReminders
+               sessionStartTime={sessionStartTime}
+               userActions={messages.length} 
+               emotion={currentEmotion}
+             />
           <div className="max-w-6xl mx-auto h-full flex flex-col">
             {/* Welcome Message */}
             {messages.length === 0 && (

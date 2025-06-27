@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Brain, Sparkles } from 'lucide-react';
 import PDFSummarizer from '../components/study/PDFSummarizer';
@@ -9,8 +9,13 @@ import QuizGenerator from '../components/study/QuizGenerator';
 import VoicePanel from '../components/VoicePanel';
 import Navbar from '../components/Navbar';
 import { BookOpen } from 'lucide-react';
+import SmartReminders from '../components/SmartReminders';
 
 const StudyPage: React.FC = () => {
+  const [sessionStartTime] = useState<Date>(new Date());
+  const [messages, setMessages] = useState<string[]>([]);
+  const [currentEmotion, setCurrentEmotion] = useState<string>('neutral');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 relative overflow-hidden">
       {/* Animated background elements */}
@@ -31,6 +36,11 @@ const StudyPage: React.FC = () => {
 
         {/* Main Content */}
         <main className="px-6 py-8">
+          <SmartReminders
+            sessionStartTime={sessionStartTime}
+            userActions={messages.length} 
+            emotion={currentEmotion}
+          />
           <div className="max-w-7xl mx-auto space-y-8">
             <div className="text-center mb-12">
               <div className="relative mb-6">
