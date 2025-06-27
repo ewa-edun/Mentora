@@ -1,3 +1,4 @@
+from unittest import result
 from flask import request,Blueprint,jsonify
 import os
 from services.assemblyAI import transcribe_audio
@@ -18,4 +19,6 @@ def transcribe():
     
     result = transcribe_audio(file_path)
     os.remove(file_path)
+    if "error" in result:
+        return jsonify({"error": result["error"]}), 500
     return jsonify({"transcription": result})

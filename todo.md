@@ -107,7 +107,10 @@ Provide the email used to build the project on Bolt.new. This email must be asso
 5. Finish Demo Video.
 6. Integerate assemblyai with voice chat page.
 
-6. Integerate with RevenueCat for subscription. 
+- **Smart Reminders**: Suggests when to break, revise, or slow down.
+
+
+9. Integerate with RevenueCat for subscription. 
 10. Integerate Adaptive Recommendations: AI learns your preferences and suggests optimal study strategies.
 11. Custom Emotion Analysis using NLP keyword matching and sentiment analysis
      - Developed custom NLP algorithms that accurately detect emotions from voice/text input

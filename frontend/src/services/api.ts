@@ -477,16 +477,22 @@ export const transcribeAudio = async (file: File): Promise<ApiResponse<{ transcr
     const formData = new FormData();
     formData.append('audio', file);
 
+    console.log('Sending audio to:', `${API_BASE_URL}/api/transcribe`);
+    console.log('Audio file:', file);
     const response = await fetch(`${API_BASE_URL}/api/transcribe`, {
       method: 'POST',
       body: formData,
     });
 
+    console.log('Received response:', response);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
+     const data = await response.json();
+    if (data.error) {
+      return { success: false, error: data.error };
+    }
     return { success: true, data };
   } catch (error) {
     console.error('Error transcribing audio:', error);

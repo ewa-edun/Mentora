@@ -283,10 +283,13 @@ const VoicePage: React.FC = () => {
     };
 
     recorder.onstop = async () => {
+      console.log('MediaRecorder onstop triggered');
       setIsRecording(false);
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
       await handleTranscribeAudio(audioBlob);
       audioChunksRef.current = [];
+      recorder.stream.getTracks().forEach(track => track.stop());
+      setMediaRecorder(null);
     };
 
     recorder.start();
@@ -297,6 +300,7 @@ const VoicePage: React.FC = () => {
 };
 
 const stopRecording = () => {
+  console.log('stopRecording called');
   if (mediaRecorder && isRecording) {
     mediaRecorder.stop();
     setIsRecording(false);
@@ -308,20 +312,22 @@ type TranscriptionResult = {
 };
 
 const handleTranscribeAudio = async (audioBlob: Blob) => {
+  console.log('handleTranscribeAudio called', audioBlob);
   setTextInput('');
   setIsProcessing(true);
   try {
     const file = new File([audioBlob], 'audio.webm', { type: 'audio/webm' });
     const result = await transcribeAudio(file);
+    console.log('Transcription result:', result);
     if (result.success && result.data) {
-      // result.data.transcription is an object: { text: "..." }
+      // result.data.transcription object: { text: "..." }
       const transcription = result.data.transcription as string | TranscriptionResult | undefined;
       const transcribedText = typeof transcription === 'string'
         ? transcription
         : (transcription && 'text' in transcription ? transcription.text || '' : '');
       setTextInput(transcribedText);
-      // Optionally, auto-send the message:
-      // handleSendMessage(transcribedText, true);
+      // Auto-send the message:
+      handleSendMessage(transcribedText, true);
     } else {
       setError(result.error || 'Transcription failed.');
     }
@@ -887,7 +893,10 @@ const handleTranscribeAudio = async (audioBlob: Blob) => {
               <div className="flex items-end gap-4">
                 {/* Enhanced Voice Button */}
                 <button
-                  onClick={isRecording ? stopRecording : startRecording}
+                  onClick={() => {
+                     console.log('Mic button clicked, isRecording:', isRecording);
+                       if (isRecording) { stopRecording(); } else { startRecording(); }
+                    }}
                   disabled={isProcessing}
                   className={`flex-shrink-0 w-16 h-16 rounded-2xl transition-all duration-300 flex items-center justify-center shadow-lg ${
                     isRecording
