@@ -103,7 +103,7 @@ Provide the email used to build the project on Bolt.new. This email must be asso
 1. PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
 2. Add two files as backup demo data: /demo/avatar-video.mp4 and /demo/voice-narration.mp3
 3. Fix the elevenlabs and tavus issue
-4. ok, i want to add firebase firestore to the voice chat page, to save the chats and reference the last 5 chats of the user and also add firebase on the story mode page for StorySession, then let these data show on the user dashboard where needed, the voice chat should show under the study analytics, and the story mode analytics should be a new different tab.
+4. then let these data show on the user dashboard where needed, the voice chat should show under the study analytics, and the story mode analytics should be a new different tab.
 
 6. Integerate with RevenueCat for subscription. 
 7. Deploy and get Custom Domain via Entri integration.

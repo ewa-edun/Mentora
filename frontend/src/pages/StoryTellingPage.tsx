@@ -81,7 +81,7 @@ const StorytellingPage: React.FC = () => {
     if (!user) return null;
 
     try {
-      const sessionData = {
+      const sessionData: any = {
         userId: user.uid,
         title: storyData.title || '',
         content: storyData.content || '',
@@ -99,6 +99,19 @@ const StorytellingPage: React.FC = () => {
         endTime: storyData.completed ? new Date() : undefined,
         ...storyData
       };
+
+       // Only include audioUrl if defined
+    if (storyData.audioUrl !== undefined) {
+      sessionData.audioUrl = storyData.audioUrl;
+    }
+    // Only include videoUrl if defined
+    if (storyData.videoUrl !== undefined) {
+      sessionData.videoUrl = storyData.videoUrl;
+    }
+    // Remove any undefined fields (especially endTime)
+    Object.keys(sessionData).forEach(
+      (key) => sessionData[key] === undefined && delete sessionData[key]
+    );
 
       const storyId = await createStorySession(sessionData);
       await loadRecentStories(user.uid);
