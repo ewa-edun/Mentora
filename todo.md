@@ -103,8 +103,8 @@ Provide the email used to build the project on Bolt.new. This email must be asso
 1. PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
 2. Add two files as backup demo data: /demo/avatar-video.mp4 (our demo video)
 3. Fix the elevenlabs, tavus and tanscribe audion issue
-4. Deploy and get Custom Domain via Entri integration.
-5. Finish Demo Video.
+4. Get Custom Domain via Entri integration.
+5. Finish Demo Video and submit.
 
 
 9. Integerate with RevenueCat for subscription. 

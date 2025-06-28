@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: mentora-backend
+    runtime: python
+    plan: free
+    branch: main
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python app.py"
+    autoDeploy: true
+    pullRequestPreviewsEnabled: true
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: TAVUS_API_KEY
+        sync: false
+      - key: ASSEMBLYAI_API_KEY
+        sync: false
