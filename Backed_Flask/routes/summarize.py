@@ -31,6 +31,11 @@ def summarize_pdf():
             return jsonify({'error': 'No PDF file provided'}), 400
         
         pdf_file = request.files['pdf']
+        pdf_file.seek(0, os.SEEK_END)
+        size = pdf_file.tell()
+        pdf_file.seek(0)
+        if size > 10 * 1024 * 1024:
+            return jsonify({'error': 'PDF file is too large. Maximum allowed size is 10MB.'}), 413
         
         # Read PDF content
         pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_file.read()))

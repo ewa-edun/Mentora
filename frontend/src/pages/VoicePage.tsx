@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mic, MicOff, Volume2, VolumeX, Send, Loader2, Brain, Sparkles,MessageCircle,Copy,CheckCircle,Settings,Heart,Star,Trash2,Download,Share2,Pause,Play,Square,Clock,History} from 'lucide-react';
-import { askQuestion } from '../services/api';
+import { askQuestion, transcribeAudio } from '../services/api';
 import { getCurrentUser, createVoiceChat, updateVoiceChat, getUserVoiceChats, VoiceChat,serverTimestamp } from '../services/firebase';
+import SmartReminders from '../components/SmartReminders';
 
 interface Message {
   id: string;
@@ -14,7 +15,6 @@ interface Message {
 }
 
 const VoicePage: React.FC = () => {
-  const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [textInput, setTextInput] = useState('');
@@ -32,10 +32,15 @@ const VoicePage: React.FC = () => {
   const [recentChats, setRecentChats] = useState<VoiceChat[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [currentEmotion, setCurrentEmotion] = useState<string>('neutral');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const navigate = useNavigate();
 
@@ -70,11 +75,11 @@ const VoicePage: React.FC = () => {
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setError('Voice recognition failed. Please try again.');
-        setIsListening(false);
+        setIsRecording(false);
       };
 
       recognitionRef.current.onend = () => {
-        setIsListening(false);
+        setIsRecording(false);
       };
     }
 
@@ -214,23 +219,6 @@ const VoicePage: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const startListening = () => {
-    if (!recognitionRef.current) {
-      setError('Voice recognition not supported in this browser');
-      return;
-    }
-    setIsListening(true);
-    setError('');
-    recognitionRef.current.start();
-  };
-
-  const stopListening = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-    setIsListening(false);
-  };
-
   const speakText = (text: string) => {
     if (!synthRef.current || !voiceEnabled) return;
 
@@ -280,6 +268,77 @@ const VoicePage: React.FC = () => {
       setIsPaused(false);
     }
   };
+
+  const startRecording = async () => {
+  setError('');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+    setMediaRecorder(recorder);
+    setAudioChunks([]); // still update state for UI if needed
+    audioChunksRef.current = [];
+    setIsRecording(true);
+
+    recorder.ondataavailable = (e) => {
+      audioChunksRef.current.push(e.data);
+      setAudioChunks((prev) => [...prev, e.data]);
+    };
+
+    recorder.onstop = async () => {
+      console.log('MediaRecorder onstop triggered');
+      setIsRecording(false);
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      await handleTranscribeAudio(audioBlob);
+      audioChunksRef.current = [];
+      recorder.stream.getTracks().forEach(track => track.stop());
+      setMediaRecorder(null);
+    };
+
+    recorder.start();
+  } catch {
+    setError('Could not access microphone.');
+    setIsRecording(false);
+  }
+};
+
+const stopRecording = () => {
+  console.log('stopRecording called');
+  if (mediaRecorder && isRecording) {
+    mediaRecorder.stop();
+    setIsRecording(false);
+  }
+};
+
+type TranscriptionResult = {
+  text?: string;
+};
+
+const handleTranscribeAudio = async (audioBlob: Blob) => {
+  console.log('handleTranscribeAudio called', audioBlob);
+  setTextInput('');
+  setIsProcessing(true);
+  try {
+    const file = new File([audioBlob], 'audio.webm', { type: 'audio/webm' });
+    const result = await transcribeAudio(file);
+    console.log('Transcription result:', result);
+    if (result.success && result.data) {
+      // result.data.transcription object: { text: "..." }
+      const transcription = result.data.transcription as string | TranscriptionResult | undefined;
+      const transcribedText = typeof transcription === 'string'
+        ? transcription
+        : (transcription && 'text' in transcription ? transcription.text || '' : '');
+      setTextInput(transcribedText);
+      // Auto-send the message:
+      handleSendMessage(transcribedText, true);
+    } else {
+      setError(result.error || 'Transcription failed.');
+    }
+  } catch {
+    setError('Transcription failed.');
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
   const handleSendMessage = async (content?: string, isVoice = false) => {
     const messageContent = content || textInput.trim();
@@ -604,6 +663,11 @@ const VoicePage: React.FC = () => {
 
         {/* Messages Area */}
         <main className="flex-1 px-6 py-8 overflow-hidden">
+          <SmartReminders
+               sessionStartTime={sessionStartTime}
+               userActions={messages.length} 
+               emotion={currentEmotion}
+             />
           <div className="max-w-6xl mx-auto h-full flex flex-col">
             {/* Welcome Message */}
             {messages.length === 0 && (
@@ -836,15 +900,18 @@ const VoicePage: React.FC = () => {
               <div className="flex items-end gap-4">
                 {/* Enhanced Voice Button */}
                 <button
-                  onClick={isListening ? stopListening : startListening}
+                  onClick={() => {
+                     console.log('Mic button clicked, isRecording:', isRecording);
+                       if (isRecording) { stopRecording(); } else { startRecording(); }
+                    }}
                   disabled={isProcessing}
                   className={`flex-shrink-0 w-16 h-16 rounded-2xl transition-all duration-300 flex items-center justify-center shadow-lg ${
-                    isListening
+                    isRecording
                       ? 'bg-gradient-to-r from-red-600 to-pink-600 animate-pulse scale-110'
                       : 'bg-gradient-to-r from-red-400 to-rose-400 hover:shadow-2xl transform hover:scale-110 glow-primary'
                   }`}
                 >
-                  {isListening ? (
+                  {isRecording ? (
                     <MicOff className="w-8 h-8 text-white" />
                   ) : (
                     <Mic className="w-8 h-8 text-white" />
@@ -857,8 +924,8 @@ const VoicePage: React.FC = () => {
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder={isListening ? "🎤 Listening..." : "Type your message or use voice..."}
-                    disabled={isListening || isProcessing}
+                    placeholder={isRecording ? "🎤 Recording..." : "Type your message or use voice..."}
+                    disabled={isRecording || isProcessing}
                     className="w-full px-6 py-4 rounded-2xl border-0 bg-white/100 backdrop-blur-sm placeholder-neutral-600 text-neutral-800 focus:bg-white/50 focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all duration-300 resize-none text-lg"
                     rows={1}
                     style={{ minHeight: '64px', maxHeight: '160px' }}
@@ -871,7 +938,7 @@ const VoicePage: React.FC = () => {
                 {/* Enhanced Send Button */}
                 <button
                   onClick={() => handleSendMessage()}
-                  disabled={!textInput.trim() || isProcessing || isListening}
+                  disabled={!textInput.trim() || isProcessing || isRecording}
                   className="flex-shrink-0 w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-2xl transform hover:scale-110 transition-all duration-300 flex items-center justify-center shadow-lg"
                 >
                   <Send className="w-8 h-8" />
@@ -881,7 +948,7 @@ const VoicePage: React.FC = () => {
               {/* Status Indicators */}
               <div className="flex items-center justify-between mt-4 text-sm text-neutral-500">
                 <div className="flex items-center gap-6">
-                  {isListening && (
+                  {isRecording && (
                     <span className="flex items-center gap-2 text-red-600">
                       <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                       Listening for your voice...
@@ -893,12 +960,13 @@ const VoicePage: React.FC = () => {
                       {isPaused ? 'Speech paused' : 'Speaking response...'}
                     </span>
                   )}
-                  {sessionStartTime && (
-                    <span className="flex items-center gap-2 text-blue-600">
-                      <Clock className="w-3 h-3" />
-                      Session: {Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 60000)}m
-                    </span>
-                  )}
+                  <span className="flex items-center gap-2 text-blue-600">
+                    <Clock className="w-3 h-3" />
+                    Session: {sessionStartTime instanceof Date && !isNaN(sessionStartTime.getTime())
+                    ? Math.floor((new Date().getTime() - sessionStartTime.getTime()) / 60000)
+                    : 0}m
+                  </span>
+                  
                 </div>
                 <div className="flex items-center gap-4">
                   <span>Press Enter to send</span>

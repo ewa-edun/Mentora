@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {  Brain, Heart, BookOpen, Mic, User, LogOut, Sparkles, TrendingUp, Clock, Target, Award, Calendar, BarChart3, Activity, Zap, ChevronDown, ChevronUp, Lightbulb, Loader2, RefreshCw, ArrowRight, Crown, CheckCircle, Type, FileText, Camera, Youtube} from 'lucide-react';
+import {  Brain, Heart, BookOpen, Mic, User, LogOut, Sparkles, TrendingUp, Clock, Target, Award, Calendar, BarChart3, Activity, Zap, ChevronDown, ChevronUp, Lightbulb, Loader2, RefreshCw, ArrowRight, Crown, CheckCircle, Type, FileText, Camera, Youtube, Star, MessageCircle, Volume2} from 'lucide-react';
 import { getCurrentUser, getUserProfile, getUserAnalytics, logoutUser, UserProfile, StudySession, EmotionEntry, LearningProgress} from '../services/firebase';
 import { getChartData, getUserInsights } from '../services/api';
 import AnalyticsCharts from '../components/analytics/AnalyticsCharts';
@@ -13,7 +13,7 @@ const StudentDashboard: React.FC = () => {
   const [analytics, setAnalytics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'overview' | 'study' | 'emotions' | 'progress'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'study' | 'emotions' | 'progress' | 'stories'>('overview');
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('7d');
   const [studyTimeChart, setStudyTimeChart] = useState<any>(null);
   const [emotionTrendsChart, setEmotionTrendsChart] = useState<any>(null);
@@ -423,6 +423,16 @@ useEffect(() => {
                 >
                   Learning Progress
                 </button>
+                <button
+                  onClick={() => setActiveTab('stories')}
+                  className={`px-6 py-3 rounded-xl font-medium transition-all ${
+                    activeTab === 'stories'
+                      ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white shadow-lg'
+                      : 'bg-white/40 text-neutral-700 hover:bg-white/50'
+                  }`}
+                >
+                  Stories & Voice
+                </button>
               </div>
             </div>
 
@@ -467,8 +477,8 @@ useEffect(() => {
               <div className="space-y-8">
                 {/* Quick Stats */}
                 {analytics && (
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 text-center hover:bg-white/20 transition-all duration-300">
+                  <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
+                    <div className="backdrop-blur-xl bg-white/20 border border-white/30 rounded-2xl p-6 text-center hover:bg-white/30 transition-all duration-300">
                       <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mx-auto mb-3">
                         <Clock className="w-6 h-6 text-white" />
                       </div>
@@ -507,7 +517,27 @@ useEffect(() => {
                       </div>
                       <div className="text-sm text-neutral-600">Topics Studied</div>
                     </div>
+
+                   <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 text-center hover:bg-white/20 transition-all duration-300">
+                    <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mx-auto mb-3">
+                      <MessageCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="text-2xl font-bold text-neutral-800 mb-1">
+                      {analytics.stats.voiceChats}
+                    </div>
+                      <div className="text-sm text-neutral-600">Voice Chats</div>
+                </div>
+
+                <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 text-center hover:bg-white/20 transition-all duration-300">
+                    <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl flex items-center justify-center mx-auto mb-3">
+                      <BookOpen className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="text-2xl font-bold text-neutral-800 mb-1">
+                      {analytics.stats.storiesGenerated}
+                    </div>
+                      <div className="text-sm text-neutral-600">Stories Created</div>
                   </div>
+                </div>
                 )}
 
                 {/* AI Insights */}
@@ -1108,11 +1138,182 @@ useEffect(() => {
               </div>
             )}
 
+            {activeTab === 'stories' && (
+             <div className="space-y-8">
+                   {/* Story Analytics */}
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                   <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="w-6 h-6 text-white" />
+                   </div>
+                   <h5 className="font-serif font-bold text-neutral-800 mb-2">Stories Created</h5>
+                    <p className="text-2xl font-bold text-neutral-800">
+                        {analytics?.stats.storiesGenerated || 0}
+                    </p>
+                     </div>
+            
+                    <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 text-center">
+                    <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                       <MessageCircle className="w-6 h-6 text-white" />
+                     </div>
+                     <h5 className="font-serif font-bold text-neutral-800 mb-2">Voice Conversations</h5>
+                     <p className="text-2xl font-bold text-neutral-800">
+                     {analytics?.stats.voiceChats || 0}
+                      </p>
+                     </div>
+            
+                   <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-6 text-center">
+                   <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <Volume2 className="w-6 h-6 text-white" />
+                   </div>
+                   <h5 className="font-serif font-bold text-neutral-800 mb-2">Total Messages</h5>
+                     <p className="text-2xl font-bold text-neutral-800">
+                    {(analytics?.stats.voiceChats || 0) + (analytics?.stats.storiesGenerated || 0)}
+                      </p>
+                     </div>
+                    </div>
+            
+                     {/* Recent Stories */}
+                  {(analytics?.storySessions ?? []).length > 0 && (
+                   <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
+                     <h4 className="text-xl font-serif font-bold text-neutral-800 mb-6 flex items-center gap-3">
+                      <BookOpen className="w-5 h-5 text-pink-500" />
+                        Recent Stories
+                   </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   {(analytics?.storySessions ?? []).slice(0, 6).map((story: any, index: number) => (
+                    <div key={index} className="p-4 bg-white/20 rounded-xl border border-white/30">
+                    <div className="flex items-center gap-3 mb-2">
+                <span className="text-2xl">{story.character.avatar}</span>
+                  <div className="flex-1">
+                <p className="font-medium text-neutral-800">{story.title}</p>
+               <p className="text-sm text-neutral-600">by {story.character.name}</p>
+              </div>
+             </div>
+             <div className="flex items-center gap-4 text-sm text-neutral-600 mb-2">
+            <span className="flex items-center gap-1">
+               <BookOpen className="w-3 h-3" />
+                 {story.topic}
+                  </span>
+             <span className="flex items-center gap-1">
+               <Clock className="w-3 h-3" />
+               {Math.floor((story.actualDuration || 0) / 60)}m
+                  </span>
+              </div>
+               <div className="flex gap-2">
+                {story.hasAudio && (
+                  <span className="bg-green-100/60 text-green-700 px-2 py-1 rounded-lg text-xs">Audio</span>
+                  )}
+               {story.hasVideo && (
+                 <span className="bg-blue-100/60 text-blue-700 px-2 py-1 rounded-lg text-xs">Video</span>
+                 )}
+                   {story.completed && (
+                     <span className="bg-purple-100/60 text-purple-700 px-2 py-1 rounded-lg text-xs">Completed</span>
+                    )}
+                     {story.rating && (
+                       <div className="flex items-center gap-1">
+                        {[...Array(story.rating)].map((_: any, i: number) => (
+                         <Star key={i} className="w-3 h-3 text-amber-400 fill-current" />
+                                 ))}
+                               </div>
+                             )}
+                           </div>
+                        </div>
+                       ))}
+                     </div>
+                   </div>
+                 )}
+              
+                {/* Voice Chat Summary */}
+                     {(analytics?.voiceChats ?? []).length > 0 && (
+                       <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 shadow-xl">
+                      <h4 className="text-xl font-serif font-bold text-neutral-800 mb-6 flex items-center gap-3">
+                        <MessageCircle className="w-5 h-5 text-indigo-500" />
+                           Voice Chat Summary
+                       </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(analytics?.voiceChats ?? []).slice(0, 4).map((chat: any, index: number) => (
+                  <div key={index} className="p-4 bg-white/20 rounded-xl border border-white/30">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                           <Mic className="w-4 h-4 text-indigo-600" />
+                             <span className="font-medium text-neutral-800">
+                               {chat.summary || `Chat ${index + 1}`}
+                                </span>
+                               </div>
+                             <span className="text-sm text-neutral-600">
+                               {chat.totalMessages} msgs
+                              </span>
+                            </div>
+                    <div className="flex items-center gap-4 text-sm text-neutral-600 mb-2">
+                        <span className="flex items-center gap-1">
+                           <Clock className="w-3 h-3" />
+                         {Math.floor((chat.duration || 0) / 60)}m
+                       </span>
+                          <span>{formatTime(chat.createdAt)}</span>
+                    </div>
+                            {chat.topics && chat.topics.length > 0 && (
+                            <div className="flex gap-2 flex-wrap">
+                           {chat.topics.slice(0, 3).map((topic: string, i: number) => (
+                            <span key={i} className="bg-indigo-100/60 text-indigo-700 px-2 py-1 rounded-lg text-xs">
+                            {topic}
+                          </span>
+                            ))}
+                          </div>
+                        )}
+                    </div>
+                   ))}
+                  </div>
+                </div>
+               )}
+                {/* Additional Features */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     {/* Voice Assistant */}
+                     <Link to="/voice" className="group">
+                        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 hover:bg-white/20 hover:border-white/30 transition-all duration-300 transform hover:scale-105">
+                          <div className="flex items-center gap-4 mb-4">
+                           <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Mic className="w-8 h-8 text-white" />
+                            </div>
+                             <div>
+                               <h3 className="text-xl font-serif font-bold text-neutral-800">🎙️ Voice Assistant</h3>
+                              <p className="text-neutral-600">Chat with AI using your voice</p>
+                           </div>
+                             </div>
+                              <div className="flex items-center gap-2 text-blue-600 group-hover:text-blue-700 transition-colors">
+                              <span className="font-medium">Start Voice Chat</span>
+                              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                             </div>
+                            </div>
+                          </Link>
+                       
+                        {/* Storytelling */}
+                          <Link to="/storytelling" className="group">
+                           <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 hover:bg-white/20 hover:border-white/30 transition-all duration-300 transform hover:scale-105">
+                             <div className="flex items-center gap-4 mb-4">
+                               <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <BookOpen className="w-8 h-8 text-white" />
+                                   </div>
+                                   <div>
+                              <h3 className="text-xl font-serif font-bold text-neutral-800">📖 Story Mode</h3>
+                                  <p className="text-neutral-600">Learn through magical stories</p>
+                                  </div>
+                              </div>
+                                 <div className="flex items-center gap-2 text-purple-600 group-hover:text-purple-700 transition-colors">
+                                   <span className="font-medium">Create Stories</span>
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                 </div>
+                                </div>
+                              </Link>
+                            </div>
+
             {/* Error Display */}
             {error && (
               <div className="p-4 bg-red-100/80 backdrop-blur-sm border border-red-200/50 rounded-xl">
                 <p className="text-sm text-red-700">{error}</p>
               </div>
+            )}
+         </div>
             )}
           </div>
         </main>

@@ -338,7 +338,7 @@ const Profile: React.FC = () => {
                       <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="flex items-center gap-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-medium py-2 px-4 rounded-xl hover:from-primary-700 hover:to-secondary-700 transform hover:scale-105 focus:ring-4 focus:ring-primary-200 focus:outline-none transition-all duration-300 shadow-lg"
+                        className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium py-2 px-4 rounded-xl hover:from-purple-700 hover:to-blue-700 transform hover:scale-105 focus:ring-4 focus:ring-purple-200 focus:outline-none transition-all duration-300 shadow-lg"
                       >
                         {isSaving ? (
                           <>
@@ -354,7 +354,7 @@ const Profile: React.FC = () => {
                       </button>
                       <button
                         onClick={handleCancel}
-                        className="flex items-center gap-2 bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 font-medium py-2 px-4 rounded-xl hover:bg-white/30 hover:border-white/50 transition-all duration-300"
+                        className="flex items-center gap-2 bg-white/40 backdrop-blur-sm border border-white/50 text-neutral-700 font-medium py-2 px-4 rounded-xl hover:bg-white/50 hover:border-white/60 transition-all duration-300"
                       >
                         <X className="w-4 h-4" />
                         <span>Cancel</span>

@@ -9,6 +9,8 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
+# Set maximum content length for file uploads
 
 # Register blueprints
 app.register_blueprint(summary_bp)
@@ -38,7 +40,8 @@ def welcome():
             '/api/generate-voice',
             '/api/characters',
             '/api/analytics/charts',
-            '/api/analytics/insights'
+            '/api/analytics/insights',
+            '/api/transcribe',
         ]
     })
 
@@ -49,6 +52,10 @@ def health_check():
         'message': 'Mentora API is running! 🚀',
         'version': '1.0.0'
     })
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    return jsonify({'error': 'PDF file is too large. Maximum allowed size is 10MB.'}), 413
 
 if __name__ == '__main__':
     print("🚀 Starting Mentora Flask Backend...")

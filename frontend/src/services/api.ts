@@ -239,14 +239,14 @@ export const summarizeYouTube = async (url: string): Promise<ApiResponse<YouTube
 };
 
 // Quiz generation
-export const generateQuiz = async (text: string): Promise<ApiResponse<QuizResponse>> => {
+export const generateQuiz = async (text: string, difficulty: string): Promise<ApiResponse<QuizResponse>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/generate-quiz`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, difficulty : 'beginner' }),
     });
 
     if (!response.ok) {
@@ -467,6 +467,50 @@ export const getStoryCharacters = async (): Promise<ApiResponse<{ characters: St
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Failed to get story characters' 
+    };
+  }
+};
+
+//transcribe audio
+export const transcribeAudio = async (file: File): Promise<ApiResponse<{ transcription: string }>> => {
+  try {
+    const formData = new FormData();
+    formData.append('audio', file);
+
+    // Add a timeout to the fetch
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000); // 15 seconds
+
+    console.log('Sending audio to:', `${API_BASE_URL}/api/transcribe`);
+    console.log('Audio file:', file);
+    const response = await fetch(`${API_BASE_URL}/api/transcribe`, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    console.log('Received response:', response);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (data.error) {
+      return { success: false, error: data.error };
+    }
+    return { success: true, data };
+  } catch (error: any) {
+    console.error('Error transcribing audio:', error);
+    if (error.name === 'AbortError') {
+      return {
+        success: false,
+        error: 'Transcription timed out. Please try again, record a shorter audio, or type your message.',
+      };
+    }
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to transcribe audio' 
     };
   }
 };

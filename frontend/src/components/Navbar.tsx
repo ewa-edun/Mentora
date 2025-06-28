@@ -137,6 +137,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
                   </div>
 
                   <div className="p-2">
+                    
                     <Link
                       to="/profile"
                       onClick={() => setShowUserMenu(false)}

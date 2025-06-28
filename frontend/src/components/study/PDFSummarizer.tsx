@@ -18,15 +18,23 @@ const PDFSummarizer: React.FC = () => {
   }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setSelectedFile(file);
-      setError('');
-      setSummary('');
-    } else if (file) {
+  const file = event.target.files?.[0];
+  if (file) {
+    if (file.type !== 'application/pdf') {
       setError('Please select a valid PDF file');
+      return;
     }
-  };
+    if (file.size > 10 * 1024 * 1024) {
+      setError('PDF file is too large. Maximum allowed size is 10MB.');
+      setSelectedFile(null);
+      setSummary('');
+      return;
+    }
+    setSelectedFile(file);
+    setError('');
+    setSummary('');
+  }
+};
 
   const handleSubmit = async () => {
     if (!selectedFile) return;

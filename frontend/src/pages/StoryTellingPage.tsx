@@ -6,6 +6,7 @@ Settings,Download,Share2,Loader2,CheckCircle,AlertTriangle,Square,Clock,History
 import { getCurrentUser, createStorySession, updateStorySession, getUserStorySessions, rateStorySession, StorySession } from '../services/firebase';
 import { generateStory, generateVoiceNarration, generateAvatarVideo, getStoryCharacters,StoryCharacter } from '../services/api';
 import VoicePanel from '../components/VoicePanel';
+import SmartReminders from '../components/SmartReminders';
 
 
 const StorytellingPage: React.FC = () => {
@@ -34,6 +35,9 @@ const StorytellingPage: React.FC = () => {
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  const [messages, setMessages] = useState<string[]>([]);
+  const [currentEmotion, setCurrentEmotion] = useState<string>('neutral');
+  
   const navigate = useNavigate();
 
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -607,6 +611,11 @@ const StorytellingPage: React.FC = () => {
 
         {/* Main Content */}
         <main className="flex-1 px-6 py-8">
+           <SmartReminders
+            sessionStartTime={sessionStartTime}
+            userActions={messages.length} 
+            emotion={currentEmotion}
+          />
           <div className="max-w-6xl mx-auto">
             {!currentStory ? (
               /* Story Creation Interface */
