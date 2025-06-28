@@ -14,7 +14,7 @@ def generate_avatar_video(script, character, emotion):
     if not TAVUS_API_KEY or TAVUS_API_KEY == 'your_tavus_api_key_here':
         print("❌ Tavus API key not configured - returning demo video")
         return {
-            "video_url": "/demo/avatar-video.mp4",
+            "video_url": "/demo/mento demo.mp4",
             "duration": 240,
             "note": "Demo video - Tavus API key not configured"
         }
@@ -25,15 +25,15 @@ def generate_avatar_video(script, character, emotion):
     print(f"   Script length: {len(script)} characters")
     
     try:
-        # Map character to Tavus replica ID (these would be your actual replica IDs)
+        # Map character to Tavus replica ID
         character_replica_mapping = {
-            'mento': 'r1234567890abcdef',  # Replace with actual replica ID
-            'luna': 'r2345678901bcdef0',   # Replace with actual replica ID
-            'sage': 'r3456789012cdef01',   # Replace with actual replica ID
-            'spark': 'r4567890123def012'   # Replace with actual replica ID
+            'mento': 'r880666f8c89', 
+            'luna': 'rb91c99ba958',   
+            'sage': 'ra066ab28864',
+            'spark': 'r9fa0878977a'
         }
         
-        replica_id = character_replica_mapping.get(character.get('id'), 'r1234567890abcdef')
+        replica_id = character_replica_mapping.get(character.get('id'), 'r880666f8c89')
         print(f"   Using replica ID: {replica_id}")
         
         # Limit script length for API
@@ -51,7 +51,7 @@ def generate_avatar_video(script, character, emotion):
             "replica_id": replica_id,
             "script": script,
             "background_url": "https://tavusapi.com/backgrounds/classroom.jpg",  # Optional
-            "callback_url": None  # Optional webhook
+            "callback_url": "https://webhook.site/c6591bf4-4438-45f1-b749-fe380e29667c" 
         }
         
         print(f"🌐 Making request to Tavus API...")
