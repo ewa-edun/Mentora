@@ -105,12 +105,70 @@ Provide the email used to build the project on Bolt.new. This email must be asso
 3. Fix the elevenlabs, tavus and tanscribe audion issue
 4. Get Custom Domain via Entri integration.
 5. Finish Demo Video and submit.
+6. let the emotion wellness charts be scrollable on mobile view just like heatmap. let every chart be scrollable actually. Also let learning streak upgrade, it keeps showing 0.
+
+7. Integerate with RevenueCat for subscription. 
 
 
-9. Integerate with RevenueCat for subscription. 
-10. Integerate Adaptive Recommendations: AI learns your preferences and suggests optimal study strategies.
-11. Custom Emotion Analysis using NLP keyword matching and sentiment analysis
-     - Developed custom NLP algorithms that accurately detect emotions from voice/text input
-     - Built personalized activity recommendation engine with 6+ emotion categories
-     - Created dynamic UI that adapts colors, messaging, and suggestions based on emotional state
 
+## ✅ Final Smart Add-Ons to Mentora
+
+### 1. 🧠 **Memory & Habit Agent (Recap of Past Sessions)**
+
+> "Mentora, what did I learn this week?"
+
+You'll:
+
+* Use **Firestore** to fetch past sessions
+* Use **Bolt + Gemini** to summarize learning history
+* Display this in a “Memory Recap” screen or voice reply
+
+
+#### ✅ **Memory Agent**
+
+* [ ] Create `recapAgent` on Bolt
+* [ ] API route `/memory/recap` → fetch Firestore past week data
+* [ ] Send to Gemini via Bolt and return:
+
+  > “You reviewed Algebra, answered 6 quizzes, and felt calm 4 times. Good job!”
+
+---
+### 2. 🎓 **Study Plan Generator (AI Agent for 5-Day Topic Plans)**
+
+> "Mentora, help me learn Python in 5 days."
+
+You’ll:
+
+* Let user type or speak a topic (e.g., "React", "Neural networks")
+* Bolt triggers Gemini with a prompt:
+  `"Break this topic into a 5-day personalized learning plan"`
+* Return formatted plan (can be cards or daily tasks)
+
+#### ✅ **Study Plan Generator**
+
+* [ ] Add topic input → `/studyplan?topic=React`
+* [ ] Bolt + Gemini prompt:
+  `"Give me a 5-day study plan for [topic] with 1 main lesson, 1 resource, and 1 quiz prompt per day."`
+* [ ] Return as a scrollable card UI
+
+---
+
+### 3. 🏆 **Gamified Achievement Engine (Study Streaks + XP)**
+
+> "🔥 You've completed 3 sessions in a row. You earned a Focus Badge!"
+
+You’ll:
+
+* Track daily study sessions (Firestore log)
+* Update `streakCount` or `quizAccuracy`
+* Use Bolt to check logic and trigger UI badges or confetti 🎉
+
+#### ✅ **Gamified Engine (optional stretch goal today)**
+
+* [ ] Bolt logic route `/badge-check`
+* [ ] On session end, POST `userId + sessionData` → calculate:
+
+  * Consecutive days
+  * Accuracy ≥ 80%
+* [ ] Return badge earned
+* [ ] Trigger confetti or “badge unlocked” pop-up in UI

@@ -61,8 +61,8 @@ In one voice-driven app, Mentora lets you:
 |--------|-------------|
 | 🧠 **Memory Mode** | Remembers what you've learned, what topics you struggled with, and tailors next sessions |
 | 📈 **Progress Tracking** | Monitor study sessions, emotional patterns, and achievements |
-| 🎯 **Adaptive Recommendations** | AI learns your preferences and suggests optimal study strategies |
 | 🗓️ **Smart Reminders** | Suggests when to break, revise, or slow down |
+| ✅ **Personalized Dashboard** | Shows analytics and charts based on your data |
 
 ---
 
@@ -73,6 +73,7 @@ In one voice-driven app, Mentora lets you:
 - **Tailwind CSS** for beautiful, responsive design with custom animations
 - **Vite** for lightning-fast development and optimized builds
 - **React Router** for seamless navigation between study and break modes
+- **Chart.js** for charts seen on the dashboard.
 
 ### 🔧 Backend Architecture
 - **Flask** as lightweight, flexible API framework
@@ -81,13 +82,11 @@ In one voice-driven app, Mentora lets you:
 - **Modular Blueprint Architecture** for organized, scalable code
 
 ### 🔮 AI & Voice Technologies
-- **Google Gemini v1.5 Flash** – Content understanding, Q&A, quiz generation, and summarization
+- **Google Gemini 1.5 Flash** for text summarization, quiz generation, and Q&A
+- **Tesseract OCR** for handwritten note recognition
+- **Assembly AI API** for speech to text voice recognition
 - **ElevenLabs API** – Realistic AI-generated voices with emotional tone switching
 - **Tavus API** - Conversational AI video agents
-- **Web Speech API** – Browser-based speech-to-text for user voice input
-- **Tesseract OCR** – Handwritten and printed text recognition
-- **Custom NLP** – Emotion detection using keyword matching and sentiment analysis
-- **RevenueCat SDK** - Mentora+ modal integration
 
 ### 🗄️ Database & Authentication
 - **Firebase Authentication** – Secure user management with Google OAuth
@@ -112,7 +111,6 @@ Mentora is submitted to the **Bolt.new Hackathon** and qualifies for the followi
 - ✅ **Voice AI Challenge** — Uses **ElevenLabs** for real-time AI voice interactions with emotion-responsive synthesis
 - ✅ **Deploy Challenge** — Deployed on **Netlify** (frontend) and **Render** (backend) with live production environment
 - ✅ **Custom Domain Challenge** — Hosted on custom IONOS domain via **Entri** integration
-- ✅ **Make More Money Challenge** — Integrates **RevenueCat SDK** for Mentora+ premium subscriptions
 - ✅ **Conversational AI Video Challenge** — **Tavus** AI avatar integration for visual storytelling mode
 
 ### 💎 Bonus Prize Eligibility
@@ -179,6 +177,7 @@ GEMINI_API_KEY=your-gemini-api-key-here
 YOUTUBE_API_KEY=your-youtube-api-key-here
 ELEVENLABS_API_KEY=your-elevenlabs-api-key-here
 TAVUS_API_KEY=your-tavus-api-key-here
+ASSEMBLYAI_API_KEY=your-assemblyai-api-key-here
 ```
 
 **Get your API Keys:**
@@ -186,6 +185,7 @@ TAVUS_API_KEY=your-tavus-api-key-here
 2. **ElevenLabs API Key**: Sign up at [ElevenLabs](https://elevenlabs.io/) and get your API key
 3. **Tavus API Key**: Go to [Tavus](https://platform.tavus.io/) and get your API Key
 4. **Youtube API Key**: Go to google console and get the youtube data v3 api key.
+5. **AssemblyAI API Key**: Go to [AssemblyAI](https://www.assemblyai.com/) and get your API key.
 
 **Install Tesseract OCR (for handwritten notes):**
 
@@ -355,6 +355,7 @@ Once both servers are running, you can:
 6. **💬 Chat with AI** for instant help
 7. **🎭 Experience emotion detection** through voice and text analysis
 8. **🧘 Get personalized break suggestions** based on your emotional state
+9. **View you dashboard** with charts and analytics based off your data.
 
 ---
 
