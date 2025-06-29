@@ -19,15 +19,12 @@ def extract_video_id(url):
         if match:
             return match.group(1)
     return None
-
 def get_video_info(video_id):
-    """Get video title and duration from YouTube API"""
     try:
         if not YOUTUBE_API_KEY:
-            return None, None, "YouTube API key not configured"
+            return None, None, "YouTube API key not configured", False
             
         youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
-        
         request = youtube.videos().list(
             part='snippet,contentDetails',
             id=video_id
@@ -39,13 +36,11 @@ def get_video_info(video_id):
             title = video['snippet']['title']
             duration = video['contentDetails']['duration']
             category_id = video['snippet'].get('categoryId', '')
-            
-            # Check if it's likely a music video (category 10 is Music)
             is_music = category_id == '10'
-            
             return title, duration, None, is_music
         
         return None, None, "Video not found or unavailable", False
+    
     except Exception as e:
         print(f"Error getting video info: {e}")
         return None, None, f"Failed to get video information: {str(e)}", False
