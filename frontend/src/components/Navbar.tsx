@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Coffee, UserCircle, LogOut, LayoutDashboard, ChevronDown, Sparkles, Crown } from 'lucide-react';
+import { BookOpen, Coffee, UserCircle, LogOut, LayoutDashboard, ChevronDown, Sparkles, Crown, RefreshCw } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '../services/firebase';
 
 interface NavbarProps {
@@ -154,6 +154,14 @@ const Navbar: React.FC<NavbarProps> = ({ currentMode, onToggleMode }) => {
                       <LayoutDashboard className="w-4 h-4 group-hover:scale-110 transition-transform" />
                       <span>Dashboard</span>
                     </Link>
+                    <Link
+                        to="/recap"
+                        onClick={() => setShowUserMenu(false)}
+                        className="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-neutral-700 hover:bg-white/20 hover:text-neutral-800 transition-all duration-300 group"
+                      >
+                        <RefreshCw className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                        <span>View Recap</span>
+                      </Link>
                     <button
                       onClick={() => {
                         setShowUserMenu(false);

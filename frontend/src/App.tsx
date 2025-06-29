@@ -17,6 +17,7 @@ import Profile from '../src/pages/Profile';
 import Premium from '../src/pages/Premium';
 import StorytellingPage from './pages/StoryTellingPage';
 import StudentDashboard from './pages/StudentDashboard';
+import RecapPage from './pages/RecapPage';
 
 // Importing Footer component for consistent layout
 import Footer from '../src/components/Footer';
@@ -38,6 +39,7 @@ function App() {
       <Route path="/premium" element={<Premium />} />
       <Route path="/storytelling" element={<StorytellingPage />} />
       <Route path="/student-dashboard" element={<StudentDashboard />} />
+      <Route path="/recap" element={<RecapPage />} />
      
       {/* Legal Routes */}
       <Route path="/privacy" element={<PrivacyPolicy />} />

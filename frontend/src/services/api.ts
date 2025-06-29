@@ -128,6 +128,33 @@ export interface InsightResponse {
   }>;
 }
 
+
+export interface MemoryRecapResponse {
+  totalStudyTime: number;
+  sessionsCompleted: number;
+  topicsStudied: string[];
+  averageScore: number;
+  emotionalTrends: string[];
+  achievements: string[];
+  insights: string[];
+  recommendations: string[];
+}
+
+export interface StudyPlanResponse {
+  topic: string;
+  totalDuration: string;
+  difficulty: string;
+  days: Array<{
+    day: number;
+    title: string;
+    description: string;
+    tasks: string[];
+    estimatedTime: string;
+    resources: string[];
+  }>;
+  tips: string[];
+}
+
 // Text summarization
 export const summarizeText = async (text: string): Promise<ApiResponse<SummaryResponse>> => {
   try {
@@ -577,6 +604,74 @@ export const getUserInsights = async (
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Failed to get insights' 
+    };
+  }
+};
+
+// Memory & Habit Agent - Get memory recap
+export const getMemoryRecap = async (
+  userId: string,
+  timeRange: string = 'week',
+  customQuery?: string
+): Promise<ApiResponse<MemoryRecapResponse>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/memory/recap`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        userId,
+        timeRange,
+        customQuery
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data: data.data };
+  } catch (error) {
+    console.error('Error getting memory recap:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to get memory recap' 
+    };
+  }
+};
+
+// Study Plan Generator - Generate 5-day study plan
+export const generateStudyPlan = async (
+  topic: string,
+  userId?: string,
+  difficulty: string = 'intermediate'
+): Promise<ApiResponse<StudyPlanResponse>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/memory/study-plan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        topic,
+        userId,
+        difficulty
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data: data.data };
+  } catch (error) {
+    console.error('Error generating study plan:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Failed to generate study plan' 
     };
   }
 };
