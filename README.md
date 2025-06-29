@@ -39,6 +39,7 @@ In one voice-driven app, Mentora lets you:
 | 📚 **Quiz Generator** | Mentora creates flashcards or quizzes based on learning material (auto-difficulty scaling) |
 | ✍️ **OCR Reader** | Scan handwritten or printed notes and turn them into study-ready content |
 | 🎬 **YouTube Learning** | Extract and summarize key insights from educational videos |
+| ⏲️ **Pomodoro Timer** | In-built Pomodoro timer for better focus |
 
 ### 💝 **Emotion-Aware Wellness:**
 | Feature | Description |
@@ -63,6 +64,7 @@ In one voice-driven app, Mentora lets you:
 | 📈 **Progress Tracking** | Monitor study sessions, emotional patterns, and achievements |
 | 🗓️ **Smart Reminders** | Suggests when to break, revise, or slow down |
 | ✅ **Personalized Dashboard** | Shows analytics and charts based on your data |
+| 🔁**Memory Recap and Study Plan Genrator** | Memory recap for to track progress and get personalized suggestions as well as study plans for different topics.|
 
 ---
 

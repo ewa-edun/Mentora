@@ -153,7 +153,7 @@ const Landing: React.FC = () => {
             </Link>
             
             <a
-               href="https://www.youtube.com/watch?v=9sRM_VtARug"
+               href="https://youtu.be/mVm_N7Xv7g4?si=UDfApVJFTIDqLo_8"
                target="_blank"
                rel="noopener noreferrer"
                className="bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/30 hover:border-white/50 transform hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center gap-3 group"

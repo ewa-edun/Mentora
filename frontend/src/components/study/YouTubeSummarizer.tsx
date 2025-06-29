@@ -177,7 +177,7 @@ const YouTubeSummarizer: React.FC = () => {
 
   const handleTryExample = () => {
     // Set an example educational video URL
-    setYoutubeUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ');// demo  
+    setYoutubeUrl('https://youtu.be/mVm_N7Xv7g4?si=UDfApVJFTIDqLo_8');// demo video
     setError('');
     setErrorDetails(null);
   };
