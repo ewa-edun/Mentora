@@ -4,8 +4,10 @@ import json
 
 analytics_bp = Blueprint('analytics', __name__)
 
-@analytics_bp.route('/api/analytics/charts', methods=['POST'])
+@analytics_bp.route('/api/analytics/charts', methods=['POST', 'OPTIONS'])
 def generate_charts():
+    if request.method == 'OPTIONS':
+        return '', 204  # Handle CORS preflight request
     """
     Generate chart data for user analytics dashboard
     """

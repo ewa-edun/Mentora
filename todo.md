@@ -100,15 +100,11 @@ Provide a URL to a publicly available version of the project that is fully funct
 Confirm usage of Bolt.new to build the project and show the ‘Built with Bolt.new’ badge on your public project.
 Provide the email used to build the project on Bolt.new. This email must be associated with the usage of Bolt.new to built the submitted project.
 
-1. PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
-2. Add two files as backup demo data: /demo/avatar-video.mp4 (our demo video)
-3. Fix the elevenlabs, tavus and tanscribe audion issue
+2. PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
+3. Fix the tanscribe audio issue
 4. Get Custom Domain via Entri integration.
 5. Finish Demo Video and submit.
 6. let the emotion wellness charts be scrollable on mobile view just like heatmap. let every chart be scrollable actually. Also let learning streak upgrade, it keeps showing 0.
-
-7. Integerate with RevenueCat for subscription. 
-
 
 
 ## ✅ Final Smart Add-Ons to Mentora

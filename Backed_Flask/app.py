@@ -9,7 +9,7 @@ from routes.transcribe import transcribe_bp
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app, origins=["*"], supports_credentials=True) 
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
 # Set maximum content length for file uploads
 
