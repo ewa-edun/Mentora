@@ -954,6 +954,44 @@ export const getUserAnalytics = async (userId: string): Promise<{
       emotionCounts[a] > emotionCounts[b] ? a : b, 'neutral'
     );
 
+    // Calculate streakDays
+const studyDates = Array.from(
+  new Set(
+    studySessions
+      .map(s => {
+        const d = s.createdAt instanceof Date
+          ? s.createdAt
+          : s.createdAt && typeof s.createdAt.toDate === 'function'
+            ? s.createdAt.toDate()
+            : null;
+        return d ? d.toISOString().slice(0, 10) : null;
+      })
+      .filter(Boolean)
+  )
+).sort((a, b) => (a! > b! ? -1 : 1)); // Descending
+
+let streak = 0;
+let current = new Date();
+for (let i = 0; i < studyDates.length; i++) {
+  const date = new Date(studyDates[i]!);
+  if (
+    i === 0 &&
+    (date.toDateString() === current.toDateString() ||
+      date.toDateString() === new Date(current.setDate(current.getDate() - 1)).toDateString())
+  ) {
+    streak = 1;
+    current = date;
+  } else if (
+    streak > 0 &&
+    date.toDateString() === new Date(current.setDate(current.getDate() - 1)).toDateString()
+  ) {
+    streak++;
+    current = date;
+  } else if (streak > 0) {
+    break;
+  }
+};
+
     return {
       studySessions,
       breakSessions,
@@ -964,7 +1002,7 @@ export const getUserAnalytics = async (userId: string): Promise<{
         totalBreakTime,
         averageSessionLength,
         mostCommonEmotion,
-        streakDays: 0, // Calculate based on consecutive study days
+        streakDays: streak, // Calculate based on consecutive study days
         topicsStudied: learningProgress.length,
         voiceChats: (await getUserVoiceChats(userId)).length,
         storiesGenerated: (await getUserStorySessions(userId)).length

@@ -125,8 +125,10 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
   }
 
   return (
-    <div style={{ height: `${height}px` }}>
-      <canvas ref={chartRef} />
+     <div className="overflow-x-auto w-full">
+      <div className="min-w-[600px]" style={{ height: `${height}px` }}>
+        <canvas ref={chartRef} />
+      </div>
     </div>
   );
 };

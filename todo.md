@@ -100,71 +100,25 @@ Provide a URL to a publicly available version of the project that is fully funct
 Confirm usage of Bolt.new to build the project and show the ‘Built with Bolt.new’ badge on your public project.
 Provide the email used to build the project on Bolt.new. This email must be associated with the usage of Bolt.new to built the submitted project.
 
+1. Finish Demo Video and submit.
 2. PUT DEMO VIDEO LINK ON LANDING PAGE AND YOUTUBE SUMMARIZER
-3. Fix the tanscribe audio issue
-4. Get Custom Domain via Entri integration.
-5. Finish Demo Video and submit.
-6. let the emotion wellness charts be scrollable on mobile view just like heatmap. let every chart be scrollable actually. Also let learning streak upgrade, it keeps showing 0.
+3. Fix the tanscribe audio issue.
 
-
-## ✅ Final Smart Add-Ons to Mentora
-
-### 1. 🧠 **Memory & Habit Agent (Recap of Past Sessions)**
-
-> "Mentora, what did I learn this week?"
-
-You'll:
+ADDITIONS WITH FREE BOLT:
+2. Memory & Habit Agent (Recap of Past Sessions): Users can ask: "Mentora, what did I learn this week?" and follow up questions as well to get personalized study timetable and insights.
 
 * Use **Firestore** to fetch past sessions
-* Use **Bolt + Gemini** to summarize learning history
-* Display this in a “Memory Recap” screen or voice reply
+* Use **Gemini** to summarize learning history
+* Display this in a “Memory Recap” page and it will also be included in the dashboard on the
 
+* Create `recapAgent` page with route 'recap' in app.tsx, and any needed components and backend updates.
+* API route `/memory/recap` → fetch Firestore past week data.
 
-#### ✅ **Memory Agent**
-
-* [ ] Create `recapAgent` on Bolt
-* [ ] API route `/memory/recap` → fetch Firestore past week data
-* [ ] Send to Gemini via Bolt and return:
-
-  > “You reviewed Algebra, answered 6 quizzes, and felt calm 4 times. Good job!”
-
----
-### 2. 🎓 **Study Plan Generator (AI Agent for 5-Day Topic Plans)**
-
-> "Mentora, help me learn Python in 5 days."
-
-You’ll:
+3. Study Plan Generator (AI Agent for 5-Day Topic Plans): This will still be on the recap pae just more explaiation.
+Example: "Mentora, help me learn Python in 5 days."
 
 * Let user type or speak a topic (e.g., "React", "Neural networks")
-* Bolt triggers Gemini with a prompt:
+* Prompt triggers Gemini with a prompt:
   `"Break this topic into a 5-day personalized learning plan"`
 * Return formatted plan (can be cards or daily tasks)
-
-#### ✅ **Study Plan Generator**
-
-* [ ] Add topic input → `/studyplan?topic=React`
-* [ ] Bolt + Gemini prompt:
-  `"Give me a 5-day study plan for [topic] with 1 main lesson, 1 resource, and 1 quiz prompt per day."`
-* [ ] Return as a scrollable card UI
-
----
-
-### 3. 🏆 **Gamified Achievement Engine (Study Streaks + XP)**
-
-> "🔥 You've completed 3 sessions in a row. You earned a Focus Badge!"
-
-You’ll:
-
-* Track daily study sessions (Firestore log)
-* Update `streakCount` or `quizAccuracy`
-* Use Bolt to check logic and trigger UI badges or confetti 🎉
-
-#### ✅ **Gamified Engine (optional stretch goal today)**
-
-* [ ] Bolt logic route `/badge-check`
-* [ ] On session end, POST `userId + sessionData` → calculate:
-
-  * Consecutive days
-  * Accuracy ≥ 80%
-* [ ] Return badge earned
-* [ ] Trigger confetti or “badge unlocked” pop-up in UI
+* Return as a scrollable card UI
