@@ -8,6 +8,7 @@ youtube_bp = Blueprint('youtube', __name__)
 def summarize_youtube():
     try:
         data = request.get_json()
+        print(f"🧪 YouTube Summary Request: {data}")
         url = data.get("url", '').strip()
         
         if not url:
