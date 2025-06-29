@@ -152,10 +152,15 @@ const Landing: React.FC = () => {
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             
-            <button className="bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/30 hover:border-white/50 transform hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center gap-3 group">
+            <a
+               href="https://www.youtube.com/watch?v=9sRM_VtARug"
+               target="_blank"
+               rel="noopener noreferrer"
+               className="bg-white/20 backdrop-blur-sm border border-white/30 text-neutral-700 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/30 hover:border-white/50 transform hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center gap-3 group"
+            >
               <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
               <span>Watch Demo</span>
-            </button>
+          </a>
           </div>
 
           <div className="flex items-center justify-center gap-8 text-sm text-neutral-500">

@@ -105,20 +105,7 @@ Provide the email used to build the project on Bolt.new. This email must be asso
 3. Fix the tanscribe audio issue.
 
 ADDITIONS WITH FREE BOLT:
-2. Memory & Habit Agent (Recap of Past Sessions): Users can ask: "Mentora, what did I learn this week?" and follow up questions as well to get personalized study timetable and insights.
-
-* Use **Firestore** to fetch past sessions
-* Use **Gemini** to summarize learning history
-* Display this in a “Memory Recap” page and it will also be included in the dashboard on the
-
-* Create `recapAgent` page with route 'recap' in app.tsx, and any needed components and backend updates.
-* API route `/memory/recap` → fetch Firestore past week data.
-
-3. Study Plan Generator (AI Agent for 5-Day Topic Plans): This will still be on the recap pae just more explaiation.
-Example: "Mentora, help me learn Python in 5 days."
-
-* Let user type or speak a topic (e.g., "React", "Neural networks")
-* Prompt triggers Gemini with a prompt:
-  `"Break this topic into a 5-day personalized learning plan"`
-* Return formatted plan (can be cards or daily tasks)
-* Return as a scrollable card UI
+1. Integrated Pomodoro Timer:
+Add a customizable Pomodoro timer that integrates with the break suggestions
+Track focus sessions and automatically suggest breaks
+Analyze productivity patterns to suggest optimal work/break ratios

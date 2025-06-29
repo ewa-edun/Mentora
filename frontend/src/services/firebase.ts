@@ -65,7 +65,7 @@ export interface StudySession {
   id?: string;
   userId: string;
   mode: 'study' | 'break';
-  type: 'text_summary' | 'pdf_summary' | 'quiz' | 'voice_chat' | 'ocr' | 'youtube' | 'storytelling';
+  type: 'text_summary' | 'pdf_summary' | 'quiz' | 'voice_chat' | 'ocr' | 'youtube' | 'storytelling' | 'pomodoro';
   startTime: Timestamp | Date | null;
   endTime?: Timestamp | Date | import('firebase/firestore').FieldValue | null;
   duration?: number; // in seconds

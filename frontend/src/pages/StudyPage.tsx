@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, Sparkles } from 'lucide-react';
+import { Brain, Sparkles, BookOpen } from 'lucide-react';
 import PDFSummarizer from '../components/study/PDFSummarizer';
 import HandwrittenNotes from '../components/study/HandwrittenNotes';
 import TextSummarizer from '../components/study/TextSummarizer';
@@ -8,8 +8,8 @@ import YouTubeSummarizer from '../components/study/YouTubeSummarizer';
 import QuizGenerator from '../components/study/QuizGenerator';
 import VoicePanel from '../components/VoicePanel';
 import Navbar from '../components/Navbar';
-import { BookOpen } from 'lucide-react';
 import SmartReminders from '../components/SmartReminders';
+import PomodoroTimer from '../components/PomodoroTimer';
 
 const StudyPage: React.FC = () => {
   const [sessionStartTime] = useState<Date>(new Date());
@@ -59,6 +59,11 @@ const StudyPage: React.FC = () => {
                 Transform your learning materials with AI-powered insights, summaries, and personalized quizzes. 
                 Choose your preferred study tool below.
               </p>
+            </div>
+
+             {/* Pomodoro Timer - Featured at the top */}
+            <div className="w-full">
+              <PomodoroTimer />
             </div>
             
             {/* Study Tools Grid */}
