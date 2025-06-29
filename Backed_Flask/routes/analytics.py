@@ -8,6 +8,7 @@ analytics_bp = Blueprint('analytics', __name__)
 def generate_charts():
     if request.method == 'OPTIONS':
         return '', 204  # Handle CORS preflight request
+    
     """
     Generate chart data for user analytics dashboard
     """
