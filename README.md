@@ -453,9 +453,9 @@ We've taken steps to ensure:
 
 ## 🔗 Links & Resources
 
-🌐 **Live Demo**: [https://mentora.study]([https://mentora.study](https://mentoracompanion.netlify.app/))  
+🌐 **Live Demo**: [https://mentoracompanion.netlify.app](https://mentoracompanion.netlify.app/)
 📱 **Mobile App**: Coming soon with React Native  
-🎥 **Demo Video**: [Watch on YouTube]([https://youtube.com/watch?v=mentora-demo](https://youtu.be/mVm_N7Xv7g4?si=T-dF4gYU_0MPgAWT))  
+🎥 **Demo Video**: [Watch on YouTube](https://youtu.be/mVm_N7Xv7g4?si=T-dF4gYU_0MPgAWT)
 🚀 **Devpost**: [https://devpost.com/software/mentora-7kfy14](https://devpost.com/software/mentora-7kfy14)  
 
 ---
